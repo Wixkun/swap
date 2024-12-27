@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Tailwind Page{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+    <!-- Header -->
+    <header class="bg-blue-500 text-white p-4">
+        <div class="container mx-auto">
+            <h1 class="text-2xl font-bold">{% block header %}Welcome to My Tailwind Page{% endblock %}</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto mt-6">
+        {% block content %}
+        <div class="bg-white shadow-md rounded p-6">
+            <h2 class="text-xl font-semibold mb-4">Hello, World!</h2>
+            <p>This is a simple example of a Twig template styled with Tailwind CSS.</p>
+        </div>
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 text-center p-4 mt-6">
+        {% block footer %}
+        &copy; {{ "now"|date("Y") }} My Website. All rights reserved.
+        {% endblock %}
+    </footer>
+</body>
+</html>
