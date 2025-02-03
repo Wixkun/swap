@@ -5,17 +5,20 @@ namespace App\Entity;
 use App\Repository\CustomerRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 class Customer
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    private ?Uuid $id = null;
 
-    #[ORM\Column(type: Types::GUID)]
-    private ?string $idCustomer = null;
+    public function __construct()
+    {
+        $this->id = Uuid::v4(); 
+    }
 
     #[ORM\Column(length: 255)]
     private ?string $firstName = null;
@@ -30,7 +33,7 @@ class Customer
     #[ORM\JoinColumn(nullable: false)]
     private ?User $idUser = null;
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }

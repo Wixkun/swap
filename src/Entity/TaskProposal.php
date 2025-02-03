@@ -5,17 +5,20 @@ namespace App\Entity;
 use App\Repository\TaskProposalRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 
 #[ORM\Entity(repositoryClass: TaskProposalRepository::class)]
 class TaskProposal
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    private ?Uuid $id = null;
 
-    #[ORM\Column(type: Types::GUID)]
-    private ?string $idTaskProposal = null;
+    public function __construct()
+    {
+        $this->id = Uuid::v4(); 
+    }
 
     #[ORM\Column]
     private ?float $proposedPrice = null;
@@ -34,7 +37,7 @@ class TaskProposal
     #[ORM\JoinColumn(nullable: false)]
     private ?Task $idTask = null;
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }

@@ -5,17 +5,20 @@ namespace App\Entity;
 use App\Repository\MessageRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
 class Message
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    private ?Uuid $id = null;
 
-    #[ORM\Column(type: Types::GUID)]
-    private ?string $idMessage = null;
+    public function __construct()
+    {
+        $this->id = Uuid::v4(); 
+    }
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $content = null;
@@ -31,7 +34,7 @@ class Message
     #[ORM\JoinColumn(nullable: false)]
     private ?User $idUser = null;
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
