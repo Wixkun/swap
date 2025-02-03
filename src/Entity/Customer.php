@@ -2,23 +2,19 @@
 
 namespace App\Entity;
 
-use App\Repository\CustomerRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
-use Symfony\Bridge\Doctrine\Types\UuidType;
 
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 class Customer
 {
     #[ORM\Id]
-    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    #[ORM\Column(type: 'uuid', unique: true)]
     private ?Uuid $id = null;
 
-    public function __construct()
-    {
-        $this->id = Uuid::v4(); 
-    }
+    #[ORM\OneToOne(targetEntity: User::class, cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: false)] 
+    private ?User $idUser = null;
 
     #[ORM\Column(length: 255)]
     private ?string $firstName = null;
@@ -26,27 +22,27 @@ class Customer
     #[ORM\Column(length: 255)]
     private ?string $lastName = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $address = null;
 
-    #[ORM\OneToOne(inversedBy: 'idCustomer', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $idUser = null;
+    public function __construct()
+    {
+        $this->id = Uuid::v4();
+    }
 
     public function getId(): ?Uuid
     {
         return $this->id;
     }
 
-    public function getIdCustomer(): ?string
+    public function getIdUser(): ?User
     {
-        return $this->idCustomer;
+        return $this->idUser;
     }
 
-    public function setIdCustomer(string $idCustomer): static
+    public function setIdUser(User $user): self
     {
-        $this->idCustomer = $idCustomer;
-
+        $this->idUser = $user;
         return $this;
     }
 
@@ -55,10 +51,9 @@ class Customer
         return $this->firstName;
     }
 
-    public function setFirstName(string $firstName): static
+    public function setFirstName(string $firstName): self
     {
         $this->firstName = $firstName;
-
         return $this;
     }
 
@@ -67,10 +62,9 @@ class Customer
         return $this->lastName;
     }
 
-    public function setLastName(string $lastName): static
+    public function setLastName(string $lastName): self
     {
         $this->lastName = $lastName;
-
         return $this;
     }
 
@@ -79,22 +73,10 @@ class Customer
         return $this->address;
     }
 
-    public function setAddress(string $address): static
+    public function setAddress(?string $address): self
     {
         $this->address = $address;
-
-        return $this;
-    }
-
-    public function getIdUser(): ?User
-    {
-        return $this->idUser;
-    }
-
-    public function setIdUser(User $idUser): static
-    {
-        $this->idUser = $idUser;
-
         return $this;
     }
 }
+

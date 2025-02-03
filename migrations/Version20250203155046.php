@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250203144700 extends AbstractMigration
+final class Version20250203155046 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -31,7 +31,7 @@ final class Version20250203144700 extends AbstractMigration
         $this->addSql('COMMENT ON COLUMN conversation.id_customer_id IS \'(DC2Type:uuid)\'');
         $this->addSql('COMMENT ON COLUMN conversation.id_agent_id IS \'(DC2Type:uuid)\'');
         $this->addSql('COMMENT ON COLUMN conversation.started_at IS \'(DC2Type:datetime_immutable)\'');
-        $this->addSql('CREATE TABLE customer (id UUID NOT NULL, id_user_id UUID NOT NULL, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, address VARCHAR(255) NOT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE TABLE customer (id UUID NOT NULL, id_user_id UUID NOT NULL, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, address VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_81398E0979F37AE5 ON customer (id_user_id)');
         $this->addSql('COMMENT ON COLUMN customer.id IS \'(DC2Type:uuid)\'');
         $this->addSql('COMMENT ON COLUMN customer.id_user_id IS \'(DC2Type:uuid)\'');
@@ -71,9 +71,9 @@ final class Version20250203144700 extends AbstractMigration
         $this->addSql('COMMENT ON COLUMN task_proposal.id_agent_id IS \'(DC2Type:uuid)\'');
         $this->addSql('COMMENT ON COLUMN task_proposal.id_task_id IS \'(DC2Type:uuid)\'');
         $this->addSql('COMMENT ON COLUMN task_proposal.created_at IS \'(DC2Type:datetime_immutable)\'');
-        $this->addSql('CREATE TABLE "user" (id UUID NOT NULL, email VARCHAR(255) NOT NULL, password VARCHAR(255) NOT NULL, roles TEXT NOT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE TABLE "user" (id UUID NOT NULL, email VARCHAR(255) NOT NULL, password VARCHAR(255) NOT NULL, roles JSON NOT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_8D93D649E7927C74 ON "user" (email)');
         $this->addSql('COMMENT ON COLUMN "user".id IS \'(DC2Type:uuid)\'');
-        $this->addSql('COMMENT ON COLUMN "user".roles IS \'(DC2Type:array)\'');
         $this->addSql('CREATE TABLE messenger_messages (id BIGSERIAL NOT NULL, body TEXT NOT NULL, headers TEXT NOT NULL, queue_name VARCHAR(190) NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, available_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, delivered_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_75EA56E0FB7336F0 ON messenger_messages (queue_name)');
         $this->addSql('CREATE INDEX IDX_75EA56E0E3BD61CE ON messenger_messages (available_at)');
