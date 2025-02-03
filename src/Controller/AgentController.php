@@ -6,13 +6,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-class DefaultController extends AbstractController
+class AgentController extends AbstractController
 {
-    #[Route('/', name: 'app_default')]
+    #[Route('/agent', name: 'app_agent')]
     public function index(): Response
     {
-        return $this->render('index.html.twig', [
-            'controller_name' => 'DefaultController',
+        return $this->render('agent/index.html.twig', [
+            'controller_name' => 'AgentController',
         ]);
     }
 }
