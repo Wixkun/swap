@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
 use App\Entity\Tag;
 use App\Form\TagType;
@@ -11,13 +11,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/tag')]
+#[Route('/admin/tag')]
 final class TagController extends AbstractController
 {
     #[Route(name: 'app_tag_index', methods: ['GET'])]
     public function index(TagRepository $tagRepository): Response
     {
-        return $this->render('tag/index.html.twig', [
+        return $this->render('admin/tag/index.html.twig', [
             'tags' => $tagRepository->findAll(),
         ]);
     }
@@ -36,7 +36,7 @@ final class TagController extends AbstractController
             return $this->redirectToRoute('app_tag_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('tag/new.html.twig', [
+        return $this->render('admin/tag/new.html.twig', [
             'tag' => $tag,
             'form' => $form,
         ]);
@@ -45,7 +45,7 @@ final class TagController extends AbstractController
     #[Route('/{id}', name: 'app_tag_show', methods: ['GET'])]
     public function show(Tag $tag): Response
     {
-        return $this->render('tag/show.html.twig', [
+        return $this->render('admin/tag/show.html.twig', [
             'tag' => $tag,
         ]);
     }
@@ -62,7 +62,7 @@ final class TagController extends AbstractController
             return $this->redirectToRoute('app_tag_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('tag/edit.html.twig', [
+        return $this->render('admin/tag/edit.html.twig', [
             'tag' => $tag,
             'form' => $form,
         ]);

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
 use App\Entity\Skill;
 use App\Form\SkillType;
@@ -11,13 +11,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/skill')]
+#[Route('/admin/skill')]
 final class SkillController extends AbstractController
 {
     #[Route(name: 'app_skill_index', methods: ['GET'])]
     public function index(SkillRepository $skillRepository): Response
     {
-        return $this->render('skill/index.html.twig', [
+        return $this->render('admin/skill/index.html.twig', [
             'skills' => $skillRepository->findAll(),
         ]);
     }
@@ -36,7 +36,7 @@ final class SkillController extends AbstractController
             return $this->redirectToRoute('app_skill_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('skill/new.html.twig', [
+        return $this->render('admin/skill/new.html.twig', [
             'skill' => $skill,
             'form' => $form,
         ]);
@@ -45,7 +45,7 @@ final class SkillController extends AbstractController
     #[Route('/{id}', name: 'app_skill_show', methods: ['GET'])]
     public function show(Skill $skill): Response
     {
-        return $this->render('skill/show.html.twig', [
+        return $this->render('admin/skill/show.html.twig', [
             'skill' => $skill,
         ]);
     }
@@ -62,7 +62,7 @@ final class SkillController extends AbstractController
             return $this->redirectToRoute('app_skill_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('skill/edit.html.twig', [
+        return $this->render('admin/skill/edit.html.twig', [
             'skill' => $skill,
             'form' => $form,
         ]);
