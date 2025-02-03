@@ -34,10 +34,10 @@ class AdminController extends AbstractController
         return $this->redirect($url);
     }
 
-    #[Route('/admin/services', name: 'admin_service')]
+    #[Route('/admin/skill', name: 'admin_skill')]
     public function manageServices(AdminUrlGenerator $adminUrlGenerator): Response
     {
-        $url = $adminUrlGenerator->setController(ServiceCrudController::class)->generateUrl();
+        $url = $adminUrlGenerator->setController(SkillCrudController::class)->generateUrl();
         return $this->redirect($url);
     }
 }
