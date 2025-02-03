@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil - Administration{% endblock %}
+
+{% block body %}
+<div class="flex flex-col items-center justify-center min-h-screen bg-white text-gray-900">
+    <h1 class="text-4xl font-bold text-yellow-500 mb-10">Bienvenue sur l'Admin</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="{{ path('admin_user') }}" class="admin-button">
+            <div class="p-8 bg-yellow-500 text-black text-center rounded-lg shadow-lg transition-all duration-300 hover:bg-yellow-600 hover:scale-110 hover:shadow-2xl">
+                <span class="text-5xl">🧑‍💼</span>
+                <p class="text-xl font-semibold mt-2">Gérer les Utilisateurs</p>
+            </div>
+        </a>
+
+        <a href="{{ path('admin_tag') }}" class="admin-button">
+            <div class="p-8 bg-yellow-500 text-black text-center rounded-lg shadow-lg transition-all duration-300 hover:bg-yellow-600 hover:scale-110 hover:shadow-2xl">
+                <span class="text-5xl">🏷️</span>
+                <p class="text-xl font-semibold mt-2">Gérer les Tags</p>
+            </div>
+        </a>
+
+        <a href="{{ path('admin_service') }}" class="admin-button">
+            <div class="p-8 bg-yellow-500 text-black text-center rounded-lg shadow-lg transition-all duration-300 hover:bg-yellow-600 hover:scale-110 hover:shadow-2xl">
+                <span class="text-5xl">🚗</span>
+                <p class="text-xl font-semibold mt-2">Gérer les Services</p>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}
