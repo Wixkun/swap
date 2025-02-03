@@ -43,8 +43,8 @@
             {% if app.user %}
                 <div class="flex flex-row gap-2 transition duration-200 ease-in-out text-base font-ubuntu hover:bg-white hover:bg-opacity-20 p-2 rounded-full cursor-pointer my-10">
                     <div class="flex flex-row gap-1">
-                        <p>{{ app.user.firstName }}</p>
-                        <p>{{ app.user.lastName }}</p>
+                        <p>Prénom</p>
+                        <p>Nom</p>
                     </div>
 
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -53,8 +53,8 @@
                 </div>
             {% else %}
                 <div class="my-10">
-                    <a class="transition duration-200 ease-in-out text-lg font-ubuntu hover:bg-white hover:bg-opacity-20 p-2 rounded-full">Se connecter</a>
-                    <a class="transition duration-200 ease-in-out text-base font-ubuntu bg-white text-black px-4 py-2 rounded-full hover:bg-opacity-70 cursor-pointer my-10">S'inscrire</a>
+                    <a href="{{ path('app_login') }}" class="transition duration-200 ease-in-out text-lg font-ubuntu hover:bg-white hover:bg-opacity-20 p-2 rounded-full">Se connecter</a>
+                    <a href="{{ path('app_register') }}" class="transition duration-200 ease-in-out text-base font-ubuntu bg-white text-black px-4 py-2 rounded-full hover:bg-opacity-70 cursor-pointer my-10">S'inscrire</a>
                 </div>
 
             {% endif %}
@@ -64,7 +64,7 @@
             {% block body %}{% endblock %}
         </main>
 
-        <footer class="bg-blue-600 text-white text-center py-4 mt-8">
+        <footer class="bg-black text-white text-center py-4 mt-8">
             <p>&copy; 2025 Swap - Tous droits réservés</p>
         </footer>
 
