@@ -91,10 +91,9 @@ class Agent
         return $this->idUser;
     }
 
-    public function setIdUser(User $idUser): static
+    public function setIdUser(User $user): self
     {
-        $this->idUser = $idUser;
-
+        $this->idUser = $user;
         return $this;
     }
 }
