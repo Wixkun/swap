@@ -7,7 +7,16 @@
 
     {{ include('admin/user/_form.html.twig', {'button_label': 'Update'}) }}
 
-    <a href="{{ path('app_user_index') }}">back to list</a>
+<div class="flex justify-between mt-6">
+    <a href="{{ path('app_user_index') }}" 
+       class="inline-flex items-center bg-black hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow">
+        ⬅ Back to list
+    </a>
 
-    {{ include('admin/user/_delete_form.html.twig') }}
+        {% if user.id is defined %}
+            {{ include('admin/user/_delete_form.html.twig') }}
+        {% endif %}
+    </div>
+</div>
+
 {% endblock %}

@@ -53,7 +53,7 @@ final class UserController extends AbstractController
                 $customer = new Customer();
                 $customer->setFirstName($firstNameCustomer);
                 $customer->setLastName($lastNameCustomer);
-                $customer->setCity($cityCustomer);
+                $customer->setcity($cityCustomer);
                 $entityManager->persist($customer);
                 $user->setIdCustomer($customer);
             }
@@ -120,7 +120,7 @@ final class UserController extends AbstractController
                 }
                 $user->getIdCustomer()->setFirstName($firstNameCustomer);
                 $user->getIdCustomer()->setLastName($lastNameCustomer);
-                $user->getIdCustomer()->setCity($cityCustomer);
+                $user->getIdCustomer()->setcity($cityCustomer);
             } else {
                 $user->setIdCustomer(null);
             }

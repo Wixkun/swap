@@ -1,3 +1,4 @@
+
 <div class="container mx-auto p-6">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">
         {{ button_label|default('Create / Edit') }} User
@@ -16,12 +17,19 @@
             {{ form_widget(form.password) }}
         </div>
 
-        <div>
+        <div class="mb-4">
             <label class="block text-gray-700 font-semibold mb-2">Roles</label>
-            {{ form_widget(form.roles) }}
+            <div class="flex flex-wrap gap-2">
+                {% for choice in form.roles %}
+                    <label class="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-4 py-2 shadow-sm hover:bg-gray-100 transition cursor-pointer">
+                        {{ form_widget(choice) }}
+                        <span class="text-gray-700 font-medium">{{ choice.vars.label }}</span>
+                    </label>
+                {% endfor %}
+            </div>
         </div>
 
-        <div id="agentContainer" style="display:none;">
+        <div id="agentContainer" style="display: none;">
             <label class="block text-gray-700 font-semibold mb-2">Pseudo</label>
             {{ form_widget(form.pseudoAgent) }}
 
@@ -29,63 +37,133 @@
             {{ form_widget(form.phoneAgent) }}
         </div>
 
-        <div id="customerContainer" style="display:none;">
+        <div id="customerContainer" style="display: none; position: relative;">
             <label class="block text-gray-700 font-semibold mb-2">First Name</label>
             {{ form_widget(form.firstNameCustomer) }}
 
             <label class="block text-gray-700 font-semibold mb-2 mt-3">Last Name</label>
             {{ form_widget(form.lastNameCustomer) }}
 
-            <label class="block text-gray-700 font-semibold mb-2 mt-3">city</label>
+            <label class="block text-gray-700 font-semibold mb-2 mt-3">City</label>
             {{ form_widget(form.cityCustomer) }}
+
+            <ul id="cityCustomer-suggestions" 
+                class="hidden absolute z-10 bg-white border border-gray-300 
+                        rounded-lg mt-1 w-full max-h-60 overflow-auto">
+            </ul>
+
+            <input type="hidden" id="cityCustomerSelected" value="false">
         </div>
 
         <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow">
             {{ button_label|default('Save') }}
         </button>
 
-        {{ form_end(form) }}
-    </div>
-
-    <div class="mt-6">
-        <a href="{{ path('app_user_index') }}" class="text-gray-600 hover:text-gray-800 font-semibold">
-            ⬅ Back to list
-        </a>
-    </div>
+{{ form_end(form) }}
 </div>
+
+{% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const roleInputs = document.querySelectorAll('input[name="user[roles][]"]');
-
     const agentContainer = document.getElementById('agentContainer');
     const customerContainer = document.getElementById('customerContainer');
 
     function toggleContainers() {
         let selectedRoles = [];
-        roleInputs.forEach(function (input) {
+        roleInputs.forEach(input => {
             if (input.checked) {
                 selectedRoles.push(input.value);
             }
         });
 
-        if (selectedRoles.includes('ROLE_AGENT')) {
-            agentContainer.style.display = 'block';
-        } else {
-            agentContainer.style.display = 'none';
-        }
-
-        if (selectedRoles.includes('ROLE_CUSTOMER')) {
-            customerContainer.style.display = 'block';
-        } else {
-            customerContainer.style.display = 'none';
-        }
+        agentContainer.style.display = selectedRoles.includes('ROLE_AGENT') ? 'block' : 'none';
+        customerContainer.style.display = selectedRoles.includes('ROLE_CUSTOMER') ? 'block' : 'none';
     }
 
-    roleInputs.forEach(function (input) {
-        input.addEventListener('change', toggleContainers);
+    roleInputs.forEach(input => input.addEventListener('change', toggleContainers));
+    toggleContainers();
+
+    const phoneInput = document.querySelector('input[name="user[phoneAgent]"]');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function () {
+            if (this.value.length > 12) {
+                this.value = this.value.slice(0, 12);
+            }
+        });
+    }
+
+    const cityField = document.querySelector('.cityCustomer-autocomplete-field');
+    const suggestionsList = document.getElementById('cityCustomer-suggestions');
+    const citySelected = document.getElementById('cityCustomerSelected');
+    const form = document.getElementById('user-form');
+
+    function hideSuggestions() {
+        suggestionsList.classList.add('hidden');
+        suggestionsList.innerHTML = '';
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!suggestionsList.contains(e.target) && e.target !== cityField) {
+            hideSuggestions();
+        }
     });
 
-    toggleContainers();
+    cityField.addEventListener('input', async () => {
+        citySelected.value = "false"; 
+        const query = cityField.value.trim();
+
+        if (query.length < 2) {
+            hideSuggestions();
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(query)}&limit=10&fields=nom`
+            );
+            if (!response.ok) {
+                console.error("Erreur lors de l'appel à l'API");
+                hideSuggestions();
+                return;
+            }
+
+            const data = await response.json();
+            if (!data || data.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            suggestionsList.innerHTML = '';
+            data.forEach(city => {
+                const li = document.createElement('li');
+                li.className = 'cursor-pointer hover:bg-gray-200 px-4 py-2';
+                li.textContent = city.nom;
+
+                li.addEventListener('click', () => {
+                    cityField.value = city.nom;
+                    citySelected.value = "true";
+                    hideSuggestions();
+                });
+
+                suggestionsList.appendChild(li);
+            });
+
+            suggestionsList.classList.remove('hidden');
+
+        } catch (error) {
+            console.error("Erreur:", error);
+            hideSuggestions();
+        }
+    });
+
+    form.addEventListener('submit', (e) => {
+        if (cityField.value !== '' && citySelected.value === "false") {
+            e.preventDefault();
+            alert("Veuillez sélectionner une ville dans la liste de suggestions.");
+        }
+    });
+
 });
 </script>
-
+{% endblock %}
