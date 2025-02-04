@@ -24,19 +24,18 @@ class Task
     private ?string $description = null;
 
     /**
-     * Relation ManyToMany avec l’entité Tag
-     * (stockée dans la table pivot "task_tag")
+     * Relation ManyToMany avec l’entité Tag (stockée dans la table pivot "task_tag")
      */
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'tasks')]
     #[ORM\JoinTable(name: 'task_tag')]
     private Collection $tags;
 
     /**
-     * Optionnel : stocke le nom du fichier image,
-     * par exemple "abc123.jpg" (si upload)
+     * On stockera ici UN TABLEAU de noms de fichiers
+     * ex: ["xyz123.jpg", "abc456.png"]
      */
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $imagePath = null;
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $imagePaths = [];
 
     #[ORM\Column(length: 50, options: ['default' => 'pending'])]
     private string $status = 'pending';
@@ -49,13 +48,11 @@ class Task
 
     public function __construct()
     {
-        // Génération d’un UUID unique à chaque nouvelle Task
         $this->id = Uuid::v4();
+        $this->tags = new ArrayCollection();
+        $this->status = 'pending';
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
-        $this->status = 'pending';
-        // Initialisation de la collection
-        $this->tags = new ArrayCollection();
     }
 
     public function getId(): ?Uuid
@@ -87,7 +84,6 @@ class Task
     {
         return $this->status;
     }
-
     public function setStatus(string $status): static
     {
         $this->status = $status;
@@ -103,7 +99,6 @@ class Task
     {
         return $this->updatedAt;
     }
-
     public function setUpdatedAt(\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
@@ -133,13 +128,16 @@ class Task
         return $this;
     }
 
-    public function getImagePath(): ?string
+    /**
+     * Getter / Setter pour le tableau d'images
+     */
+    public function getImagePaths(): ?array
     {
-        return $this->imagePath;
+        return $this->imagePaths;
     }
-    public function setImagePath(?string $imagePath): static
+    public function setImagePaths(?array $imagePaths): static
     {
-        $this->imagePath = $imagePath;
+        $this->imagePaths = $imagePaths;
         return $this;
     }
 }
