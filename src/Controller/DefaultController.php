@@ -7,6 +7,8 @@ use App\Form\TaskFormType;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -26,6 +28,31 @@ class DefaultController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
+            /** @var UploadedFile[] $uploadedFiles */
+            $uploadedFiles = $form->get('imageFiles')->getData();
+
+            if ($uploadedFiles) {
+                $existingPaths = $task->getImagePaths() ?? [];
+
+                foreach ($uploadedFiles as $imageFile) {
+                    $newFilename = uniqid().'.'.$imageFile->guessExtension();
+
+                    try {
+                        $imageFile->move(
+                            $this->getParameter('uploads_directory'),
+                            $newFilename
+                        );
+                    } catch (FileException $e) {
+                        $this->addFlash('error', 'Impossible d\'uploader l\'image : '.$e->getMessage());
+                        continue;
+                    }
+
+                    $existingPaths[] = $newFilename;
+                }
+
+                $task->setImagePaths($existingPaths);
+            }
+
             $em->persist($task);
             $em->flush();
 
@@ -34,7 +61,7 @@ class DefaultController extends AbstractController
             return $this->redirectToRoute('app_default');
         }
 
-        $tasks = $taskRepository->findAllPendingFirst();
+        $tasks = $taskRepository->findOnlyPending();
 
         return $this->render('index.html.twig', [
             'form'  => $form->createView(),
