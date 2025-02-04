@@ -16,28 +16,19 @@ class TaskRepository extends ServiceEntityRepository
         parent::__construct($registry, Task::class);
     }
 
-//    /**
-//     * @return Task[] Returns an array of Task objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('t')
-//            ->andWhere('t.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('t.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Task
-//    {
-//        return $this->createQueryBuilder('t')
-//            ->andWhere('t.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /**
+     * Finds all tasks, but ensures 'pending' tasks come first,
+     * then sorts by createdAt descending.
+     */
+    public function findAllPendingFirst(): array
+    {
+        return $this->createQueryBuilder('t')
+            // This CASE sets 0 if status = 'pending', else 1 => so pending appear first
+            ->addSelect("CASE WHEN t.status = 'pending' THEN 0 ELSE 1 END AS HIDDEN status_priority")
+            ->orderBy('status_priority', 'ASC')
+            ->addOrderBy('t.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult()
+            ;
+    }
 }
