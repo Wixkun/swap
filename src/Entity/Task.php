@@ -23,26 +23,14 @@ class Task
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(length: 50)]
-    private ?string $status = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $updatedAt = null;
-
-    /**
-     * @var Collection<int, Tag>
-     */
-    #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'idTask')]
-    private Collection $idTag;
+    #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'tasks')]
+    #[ORM\JoinTable(name: 'task_tag')]
+    private Collection $tags;
 
     public function __construct()
     {
-        $this->idTag = new ArrayCollection();
-
-        $this->id = Uuid::v4(); 
+        $this->id = Uuid::v4();
+        $this->tags = new ArrayCollection();
     }
 
     public function getId(): ?Uuid
@@ -50,27 +38,13 @@ class Task
         return $this->id;
     }
 
-    public function getIdTask(): ?string
-    {
-        return $this->idTask;
-    }
-
-    public function setIdTask(string $idTask): static
-    {
-        $this->idTask = $idTask;
-
-        return $this;
-    }
-
     public function getTitle(): ?string
     {
         return $this->title;
     }
-
     public function setTitle(string $title): static
     {
         $this->title = $title;
-
         return $this;
     }
 
@@ -78,74 +52,33 @@ class Task
     {
         return $this->description;
     }
-
     public function setDescription(?string $description): static
     {
         $this->description = $description;
-
-        return $this;
-    }
-
-    public function getStatus(): ?string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(string $status): static
-    {
-        $this->status = $status;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeInterface
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-
         return $this;
     }
 
     /**
      * @return Collection<int, Tag>
      */
-    public function getIdTag(): Collection
+    public function getTags(): Collection
     {
-        return $this->idTag;
+        return $this->tags;
     }
-
-    public function addIdTag(Tag $idTag): static
+    public function addTag(Tag $tag): static
     {
-        if (!$this->idTag->contains($idTag)) {
-            $this->idTag->add($idTag);
-            $idTag->addIdTask($this);
+        if (!$this->tags->contains($tag)) {
+            $this->tags->add($tag);
+            $tag->addTask($this);
         }
-
         return $this;
     }
-
-    public function removeIdTag(Tag $idTag): static
+    public function removeTag(Tag $tag): static
     {
-        if ($this->idTag->removeElement($idTag)) {
-            $idTag->removeIdTask($this);
+        if ($this->tags->removeElement($tag)) {
+            $tag->removeTask($this);
         }
-
         return $this;
     }
 }
+

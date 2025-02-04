@@ -12,9 +12,10 @@ class Customer
     #[ORM\Column(type: 'uuid', unique: true)]
     private ?Uuid $id = null;
 
-    #[ORM\OneToOne(targetEntity: User::class, cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)] 
+    #[ORM\OneToOne(targetEntity: User::class, inversedBy: 'idCustomer')]
+    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id", onDelete: "CASCADE")]
     private ?User $idUser = null;
+
 
     #[ORM\Column(length: 255)]
     private ?string $firstName = null;

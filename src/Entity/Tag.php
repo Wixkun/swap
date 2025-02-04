@@ -1,11 +1,9 @@
 <?php
-
 namespace App\Entity;
 
 use App\Repository\TagRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -20,69 +18,49 @@ class Tag
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    /**
-     * @var Collection<int, Task>
-     */
-    #[ORM\ManyToMany(targetEntity: Task::class, inversedBy: 'idTag')]
-    private Collection $idTask;
+    #[ORM\ManyToMany(targetEntity: Task::class, mappedBy: 'tags')]
+    private Collection $tasks;
 
     public function __construct()
     {
-        $this->idTask = new ArrayCollection();
-
-        $this->id = Uuid::v4(); 
+        $this->id = Uuid::v4();
+        $this->tasks = new ArrayCollection();
     }
 
     public function getId(): ?Uuid
     {
         return $this->id;
     }
-
-    public function getIdTag(): ?string
-    {
-        return $this->idTag;
-    }
-
-    public function setIdTag(string $idTag): static
-    {
-        $this->idTag = $idTag;
-
-        return $this;
-    }
-
     public function getName(): ?string
     {
         return $this->name;
     }
-
     public function setName(string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
     /**
      * @return Collection<int, Task>
      */
-    public function getIdTask(): Collection
+    public function getTasks(): Collection
     {
-        return $this->idTask;
+        return $this->tasks;
     }
-
-    public function addIdTask(Task $idTask): static
+    public function addTask(Task $task): static
     {
-        if (!$this->idTask->contains($idTask)) {
-            $this->idTask->add($idTask);
+        if (!$this->tasks->contains($task)) {
+            $this->tasks->add($task);
+            $task->addTag($this);
         }
-
         return $this;
     }
-
-    public function removeIdTask(Task $idTask): static
+    public function removeTask(Task $task): static
     {
-        $this->idTask->removeElement($idTask);
-
+        if ($this->tasks->removeElement($task)) {
+            $task->removeTag($this);
+        }
         return $this;
     }
 }
