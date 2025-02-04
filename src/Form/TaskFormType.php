@@ -6,6 +6,7 @@ use App\Entity\Tag;
 use App\Entity\Task;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -22,7 +23,13 @@ class TaskFormType extends AbstractType
                 'multiple' => true,
                 'expanded' => true,
                 'by_reference' => false,
-            ]);
+            ])
+            ->add('imageFile', FileType::class, [
+                'label' => 'Image',
+                'mapped' => false,
+                'required' => false,
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
