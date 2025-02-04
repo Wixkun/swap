@@ -9,6 +9,10 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Count;
+use Symfony\Component\Validator\Constraints\All;
+use Symfony\Component\Validator\Constraints\File;
 
 class TaskFormType extends AbstractType
 {
@@ -16,18 +20,48 @@ class TaskFormType extends AbstractType
     {
         $builder
             ->add('title')
-            ->add('description')
+
+            ->add('description', null, [
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'La description est obligatoire.',
+                    ]),
+                ],
+            ])
+
             ->add('tags', EntityType::class, [
                 'class' => Tag::class,
                 'choice_label' => 'name',
                 'multiple' => true,
                 'expanded' => true,
                 'by_reference' => false,
+                'constraints' => [
+                    new Count([
+                        'min' => 1,
+                        'minMessage' => 'Veuillez sélectionner au moins un tag.',
+                    ]),
+                ],
             ])
-            ->add('imageFile', FileType::class, [
-                'label' => 'Image',
+
+            // Champ multiple pour plusieurs fichiers
+            ->add('imageFiles', FileType::class, [
+                'label' => 'Images',
                 'mapped' => false,
                 'required' => false,
+                'multiple' => true,
+                'constraints' => [
+                    new All([
+                        new File([
+                            'maxSize' => '5M',
+                            'mimeTypes' => [
+                                'image/jpeg',
+                                'image/png',
+                                'image/gif',
+                            ],
+                            'mimeTypesMessage' => 'Veuillez uploader uniquement des images (JPEG, PNG, GIF).',
+                        ])
+                    ]),
+                ],
             ])
         ;
     }
@@ -39,4 +73,3 @@ class TaskFormType extends AbstractType
         ]);
     }
 }
-
