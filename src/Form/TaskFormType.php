@@ -9,24 +9,27 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class TagType extends AbstractType
+class TaskFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name')
-            ->add('idTask', EntityType::class, [
-                'class' => Task::class,
-                'choice_label' => 'title',
+            ->add('title')
+            ->add('description')
+            ->add('tags', EntityType::class, [
+                'class' => Tag::class,
+                'choice_label' => 'name',
                 'multiple' => true,
                 'expanded' => true,
+                'by_reference' => false,
             ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Tag::class,
+            'data_class' => Task::class,
         ]);
     }
 }
+
