@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250204101731 extends AbstractMigration
+final class Version20250204143138 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -56,8 +56,9 @@ final class Version20250204101731 extends AbstractMigration
         $this->addSql('COMMENT ON COLUMN skill_agent.agent_id IS \'(DC2Type:uuid)\'');
         $this->addSql('CREATE TABLE tag (id UUID NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(id))');
         $this->addSql('COMMENT ON COLUMN tag.id IS \'(DC2Type:uuid)\'');
-        $this->addSql('CREATE TABLE task (id UUID NOT NULL, title VARCHAR(255) NOT NULL, description TEXT DEFAULT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE TABLE task (id UUID NOT NULL, title VARCHAR(255) NOT NULL, description TEXT DEFAULT NULL, image_path VARCHAR(255) DEFAULT NULL, status VARCHAR(50) DEFAULT \'pending\' NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, updated_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))');
         $this->addSql('COMMENT ON COLUMN task.id IS \'(DC2Type:uuid)\'');
+        $this->addSql('COMMENT ON COLUMN task.created_at IS \'(DC2Type:datetime_immutable)\'');
         $this->addSql('CREATE TABLE task_tag (task_id UUID NOT NULL, tag_id UUID NOT NULL, PRIMARY KEY(task_id, tag_id))');
         $this->addSql('CREATE INDEX IDX_6C0B4F048DB60186 ON task_tag (task_id)');
         $this->addSql('CREATE INDEX IDX_6C0B4F04BAD26311 ON task_tag (tag_id)');

@@ -91,6 +91,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function removeAgent(): self
+    {
+        $this->idAgent = null;
+        return $this;
+    }
+
     public function getIdCustomer(): ?Customer
     {
         return $this->idCustomer;
@@ -102,6 +108,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $idCustomer->setIdUser($this);
         }
         $this->idCustomer = $idCustomer;
+        return $this;
+    }
+
+    public function removeCustomer(): self
+    {
+        $this->idCustomer = null;
         return $this;
     }
 
