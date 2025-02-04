@@ -1,4 +1,91 @@
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
-{{ form_end(form) }}
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">
+        {{ button_label|default('Create / Edit') }} User
+    </h1>
+
+    <div class="bg-white shadow-lg rounded-lg p-6">
+        {{ form_start(form, {'attr': {'class': 'space-y-4', 'id': 'user-form'}}) }}
+
+        <div>
+            <label class="block text-gray-700 font-semibold mb-2">Email</label>
+            {{ form_widget(form.email) }}
+        </div>
+
+        <div>
+            <label class="block text-gray-700 font-semibold mb-2">Password</label>
+            {{ form_widget(form.password) }}
+        </div>
+
+        <div>
+            <label class="block text-gray-700 font-semibold mb-2">Roles</label>
+            {{ form_widget(form.roles) }}
+        </div>
+
+        <div id="agentContainer" style="display:none;">
+            <label class="block text-gray-700 font-semibold mb-2">Pseudo</label>
+            {{ form_widget(form.pseudoAgent) }}
+
+            <label class="block text-gray-700 font-semibold mb-2">Phone Number</label>
+            {{ form_widget(form.phoneAgent) }}
+        </div>
+
+        <div id="customerContainer" style="display:none;">
+            <label class="block text-gray-700 font-semibold mb-2">First Name</label>
+            {{ form_widget(form.firstNameCustomer) }}
+
+            <label class="block text-gray-700 font-semibold mb-2 mt-3">Last Name</label>
+            {{ form_widget(form.lastNameCustomer) }}
+
+            <label class="block text-gray-700 font-semibold mb-2 mt-3">city</label>
+            {{ form_widget(form.cityCustomer) }}
+        </div>
+
+        <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow">
+            {{ button_label|default('Save') }}
+        </button>
+
+        {{ form_end(form) }}
+    </div>
+
+    <div class="mt-6">
+        <a href="{{ path('app_user_index') }}" class="text-gray-600 hover:text-gray-800 font-semibold">
+            ⬅ Back to list
+        </a>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const roleInputs = document.querySelectorAll('input[name="user[roles][]"]');
+
+    const agentContainer = document.getElementById('agentContainer');
+    const customerContainer = document.getElementById('customerContainer');
+
+    function toggleContainers() {
+        let selectedRoles = [];
+        roleInputs.forEach(function (input) {
+            if (input.checked) {
+                selectedRoles.push(input.value);
+            }
+        });
+
+        if (selectedRoles.includes('ROLE_AGENT')) {
+            agentContainer.style.display = 'block';
+        } else {
+            agentContainer.style.display = 'none';
+        }
+
+        if (selectedRoles.includes('ROLE_CUSTOMER')) {
+            customerContainer.style.display = 'block';
+        } else {
+            customerContainer.style.display = 'none';
+        }
+    }
+
+    roleInputs.forEach(function (input) {
+        input.addEventListener('change', toggleContainers);
+    });
+
+    toggleContainers();
+});
+</script>
+

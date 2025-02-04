@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
+use App\Repository\CustomerRepository;
 
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 class Customer
@@ -24,7 +25,7 @@ class Customer
     private ?string $lastName = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $address = null;
+    private ?string $city = null;
 
     public function __construct()
     {
@@ -69,14 +70,14 @@ class Customer
         return $this;
     }
 
-    public function getAddress(): ?string
+    public function getCity(): ?string
     {
-        return $this->address;
+        return $this->city;
     }
 
-    public function setAddress(?string $address): self
+    public function setCity(?string $city): self
     {
-        $this->address = $address;
+        $this->city = $city;
         return $this;
     }
 }

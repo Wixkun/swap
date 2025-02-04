@@ -1,33 +1,62 @@
 <?php
-
 namespace App\Form;
 
-use App\Entity\Agent;
-use App\Entity\Customer;
-use App\Entity\User;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use App\Entity\User;
+use App\Entity\Agent;
+use App\Entity\Customer;
 
 class UserType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('id')
-            ->add('email')
-            ->add('password')
-            ->add('roles')
-            ->add('idAgent', EntityType::class, [
-                'class' => Agent::class,
-                'choice_label' => 'id',
+            ->add('email', TextType::class)
+            ->add('password', PasswordType::class)
+            ->add('roles', ChoiceType::class, [
+                'choices'  => [
+                    'Admin' => 'ROLE_ADMIN',
+                    'Agent' => 'ROLE_AGENT',
+                    'Customer' => 'ROLE_CUSTOMER',
+                ],
+                'expanded' => true, 
+                'multiple' => true,  
             ])
-            ->add('idCustomer', EntityType::class, [
-                'class' => Customer::class,
-                'choice_label' => 'id',
+            ->add('pseudoAgent', TextType::class, [ 
+                'mapped' => false, 
+                'required' => false,
+                'label' => 'Pseudo',
+                'attr' => ['placeholder' => 'Enter a pseudo']
             ])
-        ;
+            ->add('phoneAgent', TextType::class, [ 
+                'mapped' => false, 
+                'required' => false,
+                'label' => 'Phone Number',
+                'attr' => ['placeholder' => 'Enter a phone number']
+            ])
+            ->add('firstNameCustomer', TextType::class, [
+                'mapped' => false, 
+                'required' => false,
+                'label' => 'First Name',
+                'attr' => ['placeholder' => 'Enter your first name']
+            ])
+            ->add('lastNameCustomer', TextType::class, [
+                'mapped' => false, 
+                'required' => false,
+                'label' => 'Last Name',
+                'attr' => ['placeholder' => 'Enter your last name']
+            ])
+            ->add('cityCustomer', TextType::class, [
+                'mapped' => false, 
+                'required' => false,
+                'label' => 'city',
+                'attr' => ['placeholder' => 'Enter your city']
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

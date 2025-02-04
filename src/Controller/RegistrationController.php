@@ -35,19 +35,19 @@ class RegistrationController extends AbstractController
 
             $firstName = $form->get('firstName')->getData();
             $lastName = $form->get('lastName')->getData();
-            $address = $form->get('address')->getData();
+            $city = $form->get('city')->getData();
 
             $customer = new Customer();
             $customer->setFirstName($firstName);
             $customer->setLastName($lastName);
-            $customer->setAddress($address);
+            $customer->setCity($city);
             $customer->setIdUser($user); 
 
             $entityManager->persist($customer);
             $entityManager->flush();
 
             $this->addFlash('success', 'Votre compte a été créé avec succès.');
-            return $this->redirectToRoute('app_default');
+            return $this->redirectToRoute('app_login');
         }
 
         return $this->render('registration/register.html.twig', [
