@@ -8,63 +8,59 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use App\Entity\User;
-use App\Entity\Agent;
-use App\Entity\Customer;
 
 class UserType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $inputClasses = 'w-64 border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200';
+
         $builder
-            ->add('email', TextType::class)
-            ->add('password', PasswordType::class)
+            ->add('email', TextType::class, [
+                'attr' => ['class' => $inputClasses, 'placeholder' => 'Enter your email'],
+            ])
+            ->add('password', PasswordType::class, [
+                'required' => false,
+                'attr' => ['class' => $inputClasses, 'placeholder' => 'Enter a new password'],
+            ])
             ->add('roles', ChoiceType::class, [
-                'choices'  => [
+                'choices' => [
                     'Admin' => 'ROLE_ADMIN',
                     'Agent' => 'ROLE_AGENT',
                     'Customer' => 'ROLE_CUSTOMER',
                 ],
-                'expanded' => true, 
-                'multiple' => true,  
+                'expanded' => true,
+                'multiple' => true,
             ])
-            ->add('pseudoAgent', TextType::class, [ 
-                'mapped' => false, 
+            ->add('pseudoAgent', TextType::class, [
+                'mapped' => false,
                 'required' => false,
                 'label' => 'Pseudo',
-                'attr' => ['placeholder' => 'Enter a pseudo']
+                'attr' => ['class' => $inputClasses, 'placeholder' => 'Enter a pseudo'],
             ])
             ->add('phoneAgent', TextType::class, [
-                'mapped' => false, 
+                'mapped' => false,
                 'required' => false,
                 'label' => 'Phone Number',
-                'attr' => [
-                    'placeholder' => 'Enter a phone number',
-                    'maxlength' => 12, 
-                    'pattern' => '.{10,12}', 
-                    'title' => 'Phone number must be between 10 and 12 characters.'
-                ],
+                'attr' => ['class' => $inputClasses, 'placeholder' => 'Enter a phone number'],
             ])
             ->add('firstNameCustomer', TextType::class, [
-                'mapped' => false, 
+                'mapped' => false,
                 'required' => false,
                 'label' => 'First Name',
-                'attr' => ['placeholder' => 'Enter your first name']
+                'attr' => ['class' => $inputClasses, 'placeholder' => 'Enter your first name'],
             ])
             ->add('lastNameCustomer', TextType::class, [
-                'mapped' => false, 
+                'mapped' => false,
                 'required' => false,
                 'label' => 'Last Name',
-                'attr' => ['placeholder' => 'Enter your last name']
+                'attr' => ['class' => $inputClasses, 'placeholder' => 'Enter your last name'],
             ])
             ->add('cityCustomer', TextType::class, [
-                'mapped' => false, 
+                'mapped' => false,
                 'required' => false,
                 'label' => 'City',
-                'attr' => [
-                    'placeholder' => 'Enter your city',
-                    'class' => 'cityCustomer-autocomplete-field', 
-                    'autocomplete' => 'off'
-                ],
+                'attr' => ['class' => "$inputClasses cityCustomer-autocomplete-field", 'autocomplete' => 'off'],
             ]);
     }
 

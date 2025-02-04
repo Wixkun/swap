@@ -27,10 +27,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 
-    #[ORM\OneToOne(mappedBy: 'idUser', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'idUser', cascade: ['persist'])]
     private ?Agent $idAgent = null;
 
-    #[ORM\OneToOne(mappedBy: 'idUser', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'idUser', cascade: ['persist'])]
     private ?Customer $idCustomer = null;
 
     public function __construct()

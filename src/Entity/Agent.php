@@ -29,8 +29,8 @@ class Agent
     #[ORM\Column(nullable: true)]
     private ?float $ratingGlobal = null;
 
-    #[ORM\OneToOne(inversedBy: 'idAgent', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\OneToOne(inversedBy: 'idAgent')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $idUser = null;
 
     public function getId(): ?Uuid

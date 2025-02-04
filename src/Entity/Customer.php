@@ -13,8 +13,8 @@ class Customer
     #[ORM\Column(type: 'uuid', unique: true)]
     private ?Uuid $id = null;
 
-    #[ORM\OneToOne(targetEntity: User::class, inversedBy: 'idCustomer')]
-    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id", onDelete: "CASCADE")]
+    #[ORM\OneToOne(inversedBy: 'idCustomer')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $idUser = null;
 
 

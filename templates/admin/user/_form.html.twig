@@ -1,7 +1,5 @@
-
-<div class="container mx-auto p-6">
+<div class="container mx-auto p-6 max-w-2xl">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">
-        {{ button_label|default('Create / Edit') }} User
     </h1>
 
     <div class="bg-white shadow-lg rounded-lg p-6">
@@ -29,7 +27,7 @@
             </div>
         </div>
 
-        <div id="agentContainer" style="display: none;">
+        <div id="agentContainer" class="hidden">
             <label class="block text-gray-700 font-semibold mb-2">Pseudo</label>
             {{ form_widget(form.pseudoAgent) }}
 
@@ -37,7 +35,7 @@
             {{ form_widget(form.phoneAgent) }}
         </div>
 
-        <div id="customerContainer" style="display: none; position: relative;">
+        <div id="customerContainer" class="hidden relative">
             <label class="block text-gray-700 font-semibold mb-2">First Name</label>
             {{ form_widget(form.firstNameCustomer) }}
 
@@ -55,11 +53,12 @@
             <input type="hidden" id="cityCustomerSelected" value="false">
         </div>
 
-        <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow">
+        <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow w-full">
             {{ button_label|default('Save') }}
         </button>
 
-{{ form_end(form) }}
+        {{ form_end(form) }}
+    </div>
 </div>
 
 {% block javascripts %}
