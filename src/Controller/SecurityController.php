@@ -24,61 +24,6 @@ class SecurityController extends AbstractController
         return $this->render('security/access_denied.html.twig');
     }
 
-    #[Route(path: '/register', name: 'app_register', methods: ['GET', 'POST'])]
-    public function register(
-        Request $request,
-        EntityManagerInterface $entityManager,
-        UserPasswordHasherInterface $passwordHasher
-    ): Response {
-        $user = new User();
-        $form = $this->createForm(RegistrationFormType::class, $user);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Hashage du mot de passe
-            $hashedPassword = $passwordHasher->hashPassword($user, $form->get('password')->getData());
-            $user->setPassword($hashedPassword);
-            $user->setRoles(['ROLE_USER']);
-
-            // Sauvegarde en base de données
-            $entityManager->persist($user);
-            $entityManager->flush();
-
-            // Message flash de succès
-            $this->addFlash('success', 'Votre compte a été créé avec succès.');
-
-            // Redirection vers la page de connexion
-            return $this->redirectToRoute('app_login');
-        }
-
-        return $this->render('registration/register.html.twig', [
-            'registrationForm' => $form->createView(),
-        ]);
-    }
-
-
-    #[Route(path: '/login', name: 'app_login', methods: ['GET', 'POST'])]
-    public function login(AuthenticationUtils $authenticationUtils): Response
-    {
-        $error = $authenticationUtils->getLastAuthenticationError();
-        $email = $authenticationUtils->getLastUsername();
-
-        if ($error) {
-            $this->addFlash('error', 'Mot de passe ou email incorrect');
-        }
-
-        return $this->render('login/login.html.twig', [
-            'email' => $email,
-            'error' => $error,
-        ]);
-    }
-
-    #[Route(path: '/logout', name: 'app_logout', methods: ['GET'])]
-    public function logout(): void
-    {
-        throw new \LogicException('Cette méthode peut rester vide - elle sera interceptée par le firewall.');
-    }
-
     #[Route(path: '/forgot', name: 'page_forgot_password', methods: ['GET'])]
     public function forgotPassword(): Response
     {
