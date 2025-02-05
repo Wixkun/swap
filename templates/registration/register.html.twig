@@ -61,6 +61,20 @@
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const passwordField = document.querySelector('#registration_form_password');
+    const form = document.querySelector('form');
+
+    form.addEventListener('submit', (event) => {
+        const password = passwordField.value;
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+
+        if (!passwordRegex.test(password)) {
+            event.preventDefault();
+            alert('Le mot de passe doit contenir au moins 8 caractères, incluant des lettres et des chiffres.');
+        }
+    });
+});
+document.addEventListener('DOMContentLoaded', () => {
     const cityField = document.querySelector('.city-autocomplete-field');
     const suggestionsList = document.getElementById('city-suggestions');
     const citySelected = document.getElementById('citySelected'); 

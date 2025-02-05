@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Validator\Constraints as Assert;
 use App\Entity\User;
 
 class RegistrationFormType extends AbstractType
@@ -32,7 +33,20 @@ class RegistrationFormType extends AbstractType
             ])
             ->add('password', PasswordType::class, [
                 'label' => 'Password',
-            ])
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'Le mot de passe ne peut pas être vide.',
+                    ]),
+                    new Assert\Length([
+                        'min' => 8,
+                        'minMessage' => 'Le mot de passe doit contenir au moins 8 caractères.',
+                    ]),
+                    new Assert\Regex([
+                        'pattern' => '/^(?=.*[A-Za-z])(?=.*\d).{8,}$/',
+                        'message' => 'Le mot de passe doit contenir au moins 8 caractères, incluant des lettres et des chiffres.',
+                    ]),
+                ],
+            ]) 
             ->add('firstName', TextType::class, [
                 'label' => 'First Name',
                 'mapped' => false,
