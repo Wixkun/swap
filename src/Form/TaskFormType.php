@@ -43,7 +43,6 @@ class TaskFormType extends AbstractType
                 ],
             ])
 
-            // Champ multiple pour plusieurs fichiers
             ->add('imageFiles', FileType::class, [
                 'label' => 'Images',
                 'mapped' => false,
@@ -57,8 +56,9 @@ class TaskFormType extends AbstractType
                                 'image/jpeg',
                                 'image/png',
                                 'image/gif',
+                                'image/webp',
                             ],
-                            'mimeTypesMessage' => 'Veuillez uploader uniquement des images (JPEG, PNG, GIF).',
+                            'mimeTypesMessage' => 'Veuillez uploader uniquement des images (JPEG, PNG, GIF, WEBM).',
                         ])
                     ]),
                 ],

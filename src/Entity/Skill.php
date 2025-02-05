@@ -49,7 +49,6 @@ class Skill
     public function setIdSkill(string $idSkill): static
     {
         $this->idSkill = $idSkill;
-
         return $this;
     }
 
@@ -90,14 +89,12 @@ class Skill
         if (!$this->idAgent->contains($idAgent)) {
             $this->idAgent->add($idAgent);
         }
-
         return $this;
     }
 
     public function removeIdAgent(Agent $idAgent): static
     {
         $this->idAgent->removeElement($idAgent);
-
         return $this;
     }
 }

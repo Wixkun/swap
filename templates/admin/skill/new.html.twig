@@ -1,11 +1,23 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Skill{% endblock %}
+{% block title %}Créer une Nouvelle Compétence{% endblock %}
 
 {% block body %}
-    <h1>Create new Skill</h1>
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">Créer une Nouvelle Compétence</h1>
 
-    {{ include('admin/skill/_form.html.twig') }}
+        <div class="bg-white shadow rounded-lg p-6">
+            {{ include('admin/skill/_form.html.twig', { 'class': 'space-y-4' }) }}
+        </div>
 
-    <a href="{{ path('app_skill_index') }}">back to list</a>
+        <div class="flex justify-between mt-6">
+            <a href="{{ path('app_skill_index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                ⬅ Retour à la liste
+            </a>
+
+            <button type="submit" form="skill_form" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                ✅ Enregistrer
+            </button>
+        </div>
+    </div>
 {% endblock %}

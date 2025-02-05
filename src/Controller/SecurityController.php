@@ -14,6 +14,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Uid\Uuid;
+use App\Form\RegistrationFormType;
 
 class SecurityController extends AbstractController
 {
@@ -29,58 +30,32 @@ class SecurityController extends AbstractController
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher
     ): Response {
-        if ($request->isMethod('POST')) {
-            $email             = $request->request->get('email');
-            $username          = $request->request->get('username');
-            $password          = $request->request->get('password');
-            $repeatedPassword  = $request->request->get('repeated-password');
-            $name              = $request->request->get('name');
-            $firstName         = $request->request->get('firstName');
+        $user = new User();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+        $form->handleRequest($request);
 
-            if ($password !== $repeatedPassword) {
-                $this->addFlash('error', 'Les mots de passe ne correspondent pas.');
-                return $this->redirectToRoute('app_register');
-            }
-
-            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/', $password)) {
-                $this->addFlash('error', 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.');
-                return $this->redirectToRoute('app_register');
-            }
-
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $this->addFlash('error', 'L\'adresse email est invalide.');
-                return $this->redirectToRoute('app_register');
-            }
-
-            $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
-            if ($existingUser) {
-                $this->addFlash('error', 'Un compte avec cet email existe déjà.');
-                return $this->redirectToRoute('app_register');
-            }
-
-            $existingUsername = $entityManager->getRepository(User::class)->findOneBy(['username' => $username]);
-            if ($existingUsername) {
-                $this->addFlash('error', 'Ce nom d\'utilisateur est déjà pris.');
-                return $this->redirectToRoute('app_register');
-            }
-
-            $user = new User();
-            $user->setEmail($email);
-            $user->setUsername($username);
-            $user->setName($name);
-            $user->setFirstName($firstName);
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Hashage du mot de passe
+            $hashedPassword = $passwordHasher->hashPassword($user, $form->get('password')->getData());
+            $user->setPassword($hashedPassword);
             $user->setRoles(['ROLE_USER']);
-            $user->setPassword($passwordHasher->hashPassword($user, $password));
 
+            // Sauvegarde en base de données
             $entityManager->persist($user);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.');
+            // Message flash de succès
+            $this->addFlash('success', 'Votre compte a été créé avec succès.');
+
+            // Redirection vers la page de connexion
             return $this->redirectToRoute('app_login');
         }
 
-        return $this->render('auth/register.html.twig');
+        return $this->render('registration/register.html.twig', [
+            'registrationForm' => $form->createView(),
+        ]);
     }
+
 
     #[Route(path: '/login', name: 'app_login', methods: ['GET', 'POST'])]
     public function login(AuthenticationUtils $authenticationUtils): Response

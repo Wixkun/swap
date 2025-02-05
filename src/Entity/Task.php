@@ -9,6 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use App\Entity\User;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 class Task
@@ -23,17 +24,10 @@ class Task
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    /**
-     * Relation ManyToMany avec l’entité Tag (stockée dans la table pivot "task_tag")
-     */
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'tasks')]
     #[ORM\JoinTable(name: 'task_tag')]
     private Collection $tags;
 
-    /**
-     * On stockera ici UN TABLEAU de noms de fichiers
-     * ex: ["xyz123.jpg", "abc456.png"]
-     */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $imagePaths = [];
 
@@ -46,6 +40,13 @@ class Task
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $updatedAt = null;
 
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'tasks')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $owner = null;
+
+    #[ORM\OneToMany(targetEntity: TaskProposal::class, mappedBy: 'task')]
+    private Collection $taskProposals;
+
     public function __construct()
     {
         $this->id = Uuid::v4();
@@ -53,6 +54,7 @@ class Task
         $this->status = 'pending';
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+        $this->taskProposals = new ArrayCollection();
     }
 
     public function getId(): ?Uuid
@@ -64,6 +66,7 @@ class Task
     {
         return $this->title;
     }
+
     public function setTitle(string $title): static
     {
         $this->title = $title;
@@ -74,6 +77,7 @@ class Task
     {
         return $this->description;
     }
+
     public function setDescription(?string $description): static
     {
         $this->description = $description;
@@ -84,6 +88,7 @@ class Task
     {
         return $this->status;
     }
+
     public function setStatus(string $status): static
     {
         $this->status = $status;
@@ -99,19 +104,18 @@ class Task
     {
         return $this->updatedAt;
     }
+
     public function setUpdatedAt(\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
         return $this;
     }
 
-    /**
-     * @return Collection<int, Tag>
-     */
     public function getTags(): Collection
     {
         return $this->tags;
     }
+
     public function addTag(Tag $tag): static
     {
         if (!$this->tags->contains($tag)) {
@@ -120,6 +124,7 @@ class Task
         }
         return $this;
     }
+
     public function removeTag(Tag $tag): static
     {
         if ($this->tags->removeElement($tag)) {
@@ -128,16 +133,50 @@ class Task
         return $this;
     }
 
-    /**
-     * Getter / Setter pour le tableau d'images
-     */
     public function getImagePaths(): ?array
     {
         return $this->imagePaths;
     }
+
     public function setImagePaths(?array $imagePaths): static
     {
         $this->imagePaths = $imagePaths;
         return $this;
     }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(User $owner): static
+    {
+        $this->owner = $owner;
+        return $this;
+    }
+
+    public function getTaskProposals(): Collection
+    {
+        return $this->taskProposals;
+    }
+
+    public function addTaskProposal(TaskProposal $taskProposal): static
+    {
+        if (!$this->taskProposals->contains($taskProposal)) {
+            $this->taskProposals->add($taskProposal);
+            $taskProposal->setTask($this);
+        }
+        return $this;
+    }
+
+    public function removeTaskProposal(TaskProposal $taskProposal): static
+    {
+        if ($this->taskProposals->removeElement($taskProposal)) {
+            if ($taskProposal->getTask() === $this) {
+                $taskProposal->setTask(null);
+            }
+        }
+        return $this;
+    }
+
 }

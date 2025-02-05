@@ -34,8 +34,11 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        # Accès pour les pages customers
+        - { path: ^/customer, roles: IS_AUTHENTICATED_FULLY }
+
+        # Règle pour l'administration (déjà en place)
         - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
 
     access_denied_url: /access-denied
 
