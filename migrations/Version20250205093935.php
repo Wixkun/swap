@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250204143138 extends AbstractMigration
+final class Version20250205093935 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -31,10 +31,10 @@ final class Version20250204143138 extends AbstractMigration
         $this->addSql('COMMENT ON COLUMN conversation.id_customer_id IS \'(DC2Type:uuid)\'');
         $this->addSql('COMMENT ON COLUMN conversation.id_agent_id IS \'(DC2Type:uuid)\'');
         $this->addSql('COMMENT ON COLUMN conversation.started_at IS \'(DC2Type:datetime_immutable)\'');
-        $this->addSql('CREATE TABLE customer (id UUID NOT NULL, id_user UUID DEFAULT NULL, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, city VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
-        $this->addSql('CREATE UNIQUE INDEX UNIQ_81398E096B3CA4B ON customer (id_user)');
+        $this->addSql('CREATE TABLE customer (id UUID NOT NULL, id_user_id UUID NOT NULL, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, city VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_81398E0979F37AE5 ON customer (id_user_id)');
         $this->addSql('COMMENT ON COLUMN customer.id IS \'(DC2Type:uuid)\'');
-        $this->addSql('COMMENT ON COLUMN customer.id_user IS \'(DC2Type:uuid)\'');
+        $this->addSql('COMMENT ON COLUMN customer.id_user_id IS \'(DC2Type:uuid)\'');
         $this->addSql('CREATE TABLE message (id UUID NOT NULL, id_conversation_id UUID NOT NULL, id_user_id UUID NOT NULL, content TEXT NOT NULL, sent_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_B6BD307FE0F2C01E ON message (id_conversation_id)');
         $this->addSql('CREATE INDEX IDX_B6BD307F79F37AE5 ON message (id_user_id)');
@@ -56,7 +56,7 @@ final class Version20250204143138 extends AbstractMigration
         $this->addSql('COMMENT ON COLUMN skill_agent.agent_id IS \'(DC2Type:uuid)\'');
         $this->addSql('CREATE TABLE tag (id UUID NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(id))');
         $this->addSql('COMMENT ON COLUMN tag.id IS \'(DC2Type:uuid)\'');
-        $this->addSql('CREATE TABLE task (id UUID NOT NULL, title VARCHAR(255) NOT NULL, description TEXT DEFAULT NULL, image_path VARCHAR(255) DEFAULT NULL, status VARCHAR(50) DEFAULT \'pending\' NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, updated_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE TABLE task (id UUID NOT NULL, title VARCHAR(255) NOT NULL, description TEXT DEFAULT NULL, image_paths JSON DEFAULT NULL, status VARCHAR(50) DEFAULT \'pending\' NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, updated_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))');
         $this->addSql('COMMENT ON COLUMN task.id IS \'(DC2Type:uuid)\'');
         $this->addSql('COMMENT ON COLUMN task.created_at IS \'(DC2Type:datetime_immutable)\'');
         $this->addSql('CREATE TABLE task_tag (task_id UUID NOT NULL, tag_id UUID NOT NULL, PRIMARY KEY(task_id, tag_id))');
@@ -89,10 +89,10 @@ final class Version20250204143138 extends AbstractMigration
         $$ LANGUAGE plpgsql;');
         $this->addSql('DROP TRIGGER IF EXISTS notify_trigger ON messenger_messages;');
         $this->addSql('CREATE TRIGGER notify_trigger AFTER INSERT OR UPDATE ON messenger_messages FOR EACH ROW EXECUTE PROCEDURE notify_messenger_messages();');
-        $this->addSql('ALTER TABLE agent ADD CONSTRAINT FK_268B9C9D79F37AE5 FOREIGN KEY (id_user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('ALTER TABLE agent ADD CONSTRAINT FK_268B9C9D79F37AE5 FOREIGN KEY (id_user_id) REFERENCES "user" (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE conversation ADD CONSTRAINT FK_8A8E26E98B870E04 FOREIGN KEY (id_customer_id) REFERENCES customer (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE conversation ADD CONSTRAINT FK_8A8E26E964CF9D9E FOREIGN KEY (id_agent_id) REFERENCES agent (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
-        $this->addSql('ALTER TABLE customer ADD CONSTRAINT FK_81398E096B3CA4B FOREIGN KEY (id_user) REFERENCES "user" (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('ALTER TABLE customer ADD CONSTRAINT FK_81398E0979F37AE5 FOREIGN KEY (id_user_id) REFERENCES "user" (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE message ADD CONSTRAINT FK_B6BD307FE0F2C01E FOREIGN KEY (id_conversation_id) REFERENCES conversation (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE message ADD CONSTRAINT FK_B6BD307F79F37AE5 FOREIGN KEY (id_user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE review ADD CONSTRAINT FK_794381C664CF9D9E FOREIGN KEY (id_agent_id) REFERENCES agent (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
@@ -111,7 +111,7 @@ final class Version20250204143138 extends AbstractMigration
         $this->addSql('ALTER TABLE agent DROP CONSTRAINT FK_268B9C9D79F37AE5');
         $this->addSql('ALTER TABLE conversation DROP CONSTRAINT FK_8A8E26E98B870E04');
         $this->addSql('ALTER TABLE conversation DROP CONSTRAINT FK_8A8E26E964CF9D9E');
-        $this->addSql('ALTER TABLE customer DROP CONSTRAINT FK_81398E096B3CA4B');
+        $this->addSql('ALTER TABLE customer DROP CONSTRAINT FK_81398E0979F37AE5');
         $this->addSql('ALTER TABLE message DROP CONSTRAINT FK_B6BD307FE0F2C01E');
         $this->addSql('ALTER TABLE message DROP CONSTRAINT FK_B6BD307F79F37AE5');
         $this->addSql('ALTER TABLE review DROP CONSTRAINT FK_794381C664CF9D9E');

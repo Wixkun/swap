@@ -61,10 +61,10 @@
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const cityField       = document.querySelector('.city-autocomplete-field');
+    const cityField = document.querySelector('.city-autocomplete-field');
     const suggestionsList = document.getElementById('city-suggestions');
-    const citySelected    = document.getElementById('citySelected'); 
-    const form            = document.querySelector('form'); 
+    const citySelected = document.getElementById('citySelected'); 
+    const form = document.querySelector('form'); 
 
     function hideSuggestions() {
         suggestionsList.classList.add('hidden');
