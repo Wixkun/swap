@@ -110,12 +110,12 @@ class UserController extends AbstractController
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $plainPassword = $form->get('password')->getData();
+            $plainPassword = $form->get('plainPassword')->getData();
             if (!empty($plainPassword)) {
                 $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
                 $user->setPassword($hashedPassword);
             }
-
+            
             $roles = $form->get('roles')->getData();
             $user->setRoles($roles);
 
@@ -150,8 +150,10 @@ class UserController extends AbstractController
                 }
                 $user->getIdCustomer()->setFirstName($firstName);
                 $user->getIdCustomer()->setLastName($lastName);
-                $user->getIdCustomer()->setCity($city);
-
+                if (!empty($city)) {
+                    $user->getIdCustomer()->setCity($city);
+                }
+                
             } else {
                 if ($user->getIdCustomer()) {
                     $entityManager->remove($user->getIdCustomer());

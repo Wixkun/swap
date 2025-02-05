@@ -1,6 +1,5 @@
 <div class="container mx-auto p-6 max-w-2xl">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">
-    </h1>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6"></h1>
 
     <div class="bg-white shadow-lg rounded-lg p-6">
         {{ form_start(form, {'attr': {'class': 'space-y-4', 'id': 'user-form'}}) }}
@@ -12,7 +11,7 @@
 
         <div>
             <label class="block text-gray-700 font-semibold mb-2">Password</label>
-            {{ form_widget(form.password) }}
+            {{ form_widget(form.plainPassword) }}
         </div>
 
         <div class="mb-4">
@@ -64,6 +63,7 @@
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Gestion d'affichage dynamique des conteneurs agent / customer
     const roleInputs = document.querySelectorAll('input[name="user[roles][]"]');
     const agentContainer = document.getElementById('agentContainer');
     const customerContainer = document.getElementById('customerContainer');
@@ -75,7 +75,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 selectedRoles.push(input.value);
             }
         });
-
         agentContainer.style.display = selectedRoles.includes('ROLE_AGENT') ? 'block' : 'none';
         customerContainer.style.display = selectedRoles.includes('ROLE_CUSTOMER') ? 'block' : 'none';
     }
@@ -83,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
     roleInputs.forEach(input => input.addEventListener('change', toggleContainers));
     toggleContainers();
 
+    // Limiter la saisie du phoneAgent à 12 caractères
     const phoneInput = document.querySelector('input[name="user[phoneAgent]"]');
     if (phoneInput) {
         phoneInput.addEventListener('input', function () {
@@ -92,77 +92,93 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Auto-complétion de la ville
     const cityField = document.querySelector('.cityCustomer-autocomplete-field');
     const suggestionsList = document.getElementById('cityCustomer-suggestions');
     const citySelected = document.getElementById('cityCustomerSelected');
     const form = document.getElementById('user-form');
+
+    // Stocker la valeur initiale de la ville pour détecter si l'utilisateur l'a modifiée
+    const initialCityValue = cityField ? cityField.value : '';
 
     function hideSuggestions() {
         suggestionsList.classList.add('hidden');
         suggestionsList.innerHTML = '';
     }
 
-    document.addEventListener('click', (e) => {
-        if (!suggestionsList.contains(e.target) && e.target !== cityField) {
-            hideSuggestions();
-        }
-    });
+    if (cityField) {
+        document.addEventListener('click', (e) => {
+            if (!suggestionsList.contains(e.target) && e.target !== cityField) {
+                hideSuggestions();
+            }
+        });
 
-    cityField.addEventListener('input', async () => {
-        citySelected.value = "false"; 
-        const query = cityField.value.trim();
+        cityField.addEventListener('input', async () => {
+            // L'utilisateur modifie la ville => on repasse citySelected à false
+            citySelected.value = "false"; 
+            const query = cityField.value.trim();
 
-        if (query.length < 2) {
-            hideSuggestions();
-            return;
-        }
-
-        try {
-            const response = await fetch(
-                `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(query)}&limit=10&fields=nom`
-            );
-            if (!response.ok) {
-                console.error("Erreur lors de l'appel à l'API");
+            if (query.length < 2) {
                 hideSuggestions();
                 return;
             }
 
-            const data = await response.json();
-            if (!data || data.length === 0) {
-                hideSuggestions();
-                return;
-            }
-
-            suggestionsList.innerHTML = '';
-            data.forEach(city => {
-                const li = document.createElement('li');
-                li.className = 'cursor-pointer hover:bg-gray-200 px-4 py-2';
-                li.textContent = city.nom;
-
-                li.addEventListener('click', () => {
-                    cityField.value = city.nom;
-                    citySelected.value = "true";
+            try {
+                const response = await fetch(
+                    `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(query)}&limit=10&fields=nom`
+                );
+                if (!response.ok) {
+                    console.error("Erreur lors de l'appel à l'API");
                     hideSuggestions();
+                    return;
+                }
+
+                const data = await response.json();
+                if (!data || data.length === 0) {
+                    hideSuggestions();
+                    return;
+                }
+
+                suggestionsList.innerHTML = '';
+                data.forEach(city => {
+                    const li = document.createElement('li');
+                    li.className = 'cursor-pointer hover:bg-gray-200 px-4 py-2';
+                    li.textContent = city.nom;
+
+                    li.addEventListener('click', () => {
+                        cityField.value = city.nom;
+                        citySelected.value = "true";
+                        hideSuggestions();
+                    });
+
+                    suggestionsList.appendChild(li);
                 });
 
-                suggestionsList.appendChild(li);
-            });
+                suggestionsList.classList.remove('hidden');
 
-            suggestionsList.classList.remove('hidden');
+            } catch (error) {
+                console.error("Erreur:", error);
+                hideSuggestions();
+            }
+        });
 
-        } catch (error) {
-            console.error("Erreur:", error);
-            hideSuggestions();
-        }
-    });
-
-    form.addEventListener('submit', (e) => {
-        if (cityField.value !== '' && citySelected.value === "false") {
-            e.preventDefault();
-            alert("Veuillez sélectionner une ville dans la liste de suggestions.");
-        }
-    });
-
+        // Validation avant soumission : on ne force la sélection dans la liste
+        // QUE si la ville a été modifiée par rapport à la valeur initiale
+        form.addEventListener('submit', (e) => {
+            if (!cityField) {
+                return;
+            }
+            // Si la ville n'a pas changé depuis le chargement, on laisse passer
+            if (cityField.value === initialCityValue) {
+                return;
+            }
+            // Sinon, si la ville n'est pas vide et que citySelected = false => on bloque
+            if (cityField.value !== '' && citySelected.value === "false") {
+                e.preventDefault();
+                alert("Veuillez sélectionner une ville dans la liste de suggestions.");
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

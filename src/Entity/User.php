@@ -33,6 +33,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'idUser', cascade: ['persist'])]
     private ?Customer $idCustomer = null;
 
+    private ?string $plainPassword = null; 
+
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
+        return $this;
+    }
+
     public function __construct()
     {
         $this->id = Uuid::v4();

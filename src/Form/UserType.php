@@ -19,48 +19,56 @@ class UserType extends AbstractType
             ->add('email', TextType::class, [
                 'attr' => ['class' => $inputClasses, 'placeholder' => 'Enter your email'],
             ])
-            ->add('password', PasswordType::class, [
+            ->add('plainPassword', PasswordType::class, [
+                'mapped'   => false,   
                 'required' => false,
-                'attr' => ['class' => $inputClasses, 'placeholder' => 'Enter a new password'],
+                'label'    => 'Nouveau mot de passe',
+                'attr'     => [
+                    'class'       => $inputClasses,
+                    'placeholder' => 'Change password',
+                ],
             ])
             ->add('roles', ChoiceType::class, [
-                'choices' => [
-                    'Admin' => 'ROLE_ADMIN',
-                    'Agent' => 'ROLE_AGENT',
+                'choices'  => [
+                    'Admin'    => 'ROLE_ADMIN',
+                    'Agent'    => 'ROLE_AGENT',
                     'Customer' => 'ROLE_CUSTOMER',
                 ],
                 'expanded' => true,
                 'multiple' => true,
             ])
             ->add('pseudoAgent', TextType::class, [
-                'mapped' => false,
+                'mapped'   => false,
                 'required' => false,
-                'label' => 'Pseudo',
-                'attr' => ['class' => $inputClasses, 'placeholder' => 'Enter a pseudo'],
+                'label'    => 'Pseudo',
+                'attr'     => ['class' => $inputClasses, 'placeholder' => 'Enter a pseudo'],
             ])
             ->add('phoneAgent', TextType::class, [
-                'mapped' => false,
+                'mapped'   => false,
                 'required' => false,
-                'label' => 'Phone Number',
-                'attr' => ['class' => $inputClasses, 'placeholder' => 'Enter a phone number'],
+                'label'    => 'Phone Number',
+                'attr'     => ['class' => $inputClasses, 'placeholder' => 'Enter a phone number'],
             ])
             ->add('firstNameCustomer', TextType::class, [
-                'mapped' => false,
+                'mapped'   => false,
                 'required' => false,
-                'label' => 'First Name',
-                'attr' => ['class' => $inputClasses, 'placeholder' => 'Enter your first name'],
+                'label'    => 'First Name',
+                'attr'     => ['class' => $inputClasses, 'placeholder' => 'Enter your first name'],
             ])
             ->add('lastNameCustomer', TextType::class, [
-                'mapped' => false,
+                'mapped'   => false,
                 'required' => false,
-                'label' => 'Last Name',
-                'attr' => ['class' => $inputClasses, 'placeholder' => 'Enter your last name'],
+                'label'    => 'Last Name',
+                'attr'     => ['class' => $inputClasses, 'placeholder' => 'Enter your last name'],
             ])
             ->add('cityCustomer', TextType::class, [
-                'mapped' => false,
+                'mapped'   => false,
                 'required' => false,
-                'label' => 'City',
-                'attr' => ['class' => "$inputClasses cityCustomer-autocomplete-field", 'autocomplete' => 'off'],
+                'label'    => 'City',
+                'attr'     => [
+                    'class'         => "$inputClasses cityCustomer-autocomplete-field", 
+                    'autocomplete'  => 'off',
+                ],
             ]);
     }
 
