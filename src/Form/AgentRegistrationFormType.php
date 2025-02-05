@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TelType;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class AgentRegistrationFormType extends AbstractType
 {
@@ -29,8 +30,21 @@ class AgentRegistrationFormType extends AbstractType
                 'label' => 'Email',
             ])
             ->add('password', PasswordType::class, [
-                'label' => 'Mot de passe',
-            ])
+                'label' => 'Password',
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'Le mot de passe ne peut pas être vide.',
+                    ]),
+                    new Assert\Length([
+                        'min' => 8,
+                        'minMessage' => 'Le mot de passe doit contenir au moins 8 caractères.',
+                    ]),
+                    new Assert\Regex([
+                        'pattern' => '/^(?=.*[A-Za-z])(?=.*\d).{8,}$/',
+                        'message' => 'Le mot de passe doit contenir au moins 8 caractères, incluant des lettres et des chiffres.',
+                    ]),
+                ],
+            ]) 
             ->add('submit', SubmitType::class, [ 
                 'label' => "S'inscrire",
                 'attr' => ['class' => 'w-full bg-black text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-900 transition']
