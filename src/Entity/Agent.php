@@ -15,9 +15,13 @@ class Agent
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     private ?Uuid $id = null;
 
+    #[ORM\OneToMany(targetEntity: TaskProposal::class, mappedBy: 'agent')]
+    private Collection $taskProposals;
+
     public function __construct()
     {
-        $this->id = Uuid::v4(); 
+        $this->id = Uuid::v4();
+        $this->taskProposals = new ArrayCollection();
     }
 
     #[ORM\Column(length: 100)]
@@ -95,5 +99,10 @@ class Agent
     {
         $this->idUser = $user;
         return $this;
+    }
+
+    public function getTaskProposals(): Collection
+    {
+        return $this->taskProposals;
     }
 }

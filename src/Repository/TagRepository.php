@@ -19,11 +19,12 @@ class TagRepository extends ServiceEntityRepository
     public function findByTag($tagId): array
     {
         return $this->createQueryBuilder('t')
-            ->join('t.tags', 'tg') // Jointure avec la table des tags
-            ->where('tg.id = :tagId')
+            ->join('t.tasks', 'task')
+            ->where('task.id = :tagId')
             ->setParameter('tagId', $tagId)
-            ->orderBy('t.createdAt', 'DESC')
+            ->orderBy('task.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
     }
+
 }

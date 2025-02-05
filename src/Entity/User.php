@@ -9,6 +9,9 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -38,6 +41,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $resetToken = null;
 
+    #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'owner', cascade: ['persist', 'remove'])]
+    private Collection $tasks;
+
+
     public function getResetToken(): ?string
     {
         return $this->resetToken;
@@ -63,7 +70,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __construct()
     {
         $this->id = Uuid::v4();
-        $this->roles = ['ROLE_CUSTOMER']; 
+        $this->roles = ['ROLE_CUSTOMER'];
+        $this->tasks = new ArrayCollection();
     }
 
     public function getId(): ?Uuid
@@ -153,4 +161,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->email;
     }
+    public function getTasks(): Collection
+    {
+        return $this->tasks;
+    }
+
 }

@@ -53,6 +53,14 @@ class DefaultController extends AbstractController
                 $task->setImagePaths($existingPaths);
             }
 
+            $user = $this->getUser();
+            if (!$user instanceof \App\Entity\User) {
+                throw new \LogicException('Aucun utilisateur connecté pour associer la tâche.');
+            }
+
+            $task->setOwner($user);
+
+
             $em->persist($task);
             $em->flush();
 

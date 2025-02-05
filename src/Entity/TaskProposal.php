@@ -15,43 +15,32 @@ class TaskProposal
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     private ?Uuid $id = null;
 
-    public function __construct()
-    {
-        $this->id = Uuid::v4(); 
-    }
-
     #[ORM\Column]
     private ?float $proposedPrice = null;
 
     #[ORM\Column(length: 50)]
-    private ?string $status = null;
+    private ?string $status = 'pending';
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Agent::class, inversedBy: 'taskProposals')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Agent $idAgent = null;
+    private ?Agent $agent = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Task::class, inversedBy: 'taskProposals')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Task $idTask = null;
+    private ?Task $task = null;
+
+    public function __construct()
+    {
+        $this->id = Uuid::v4();
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?Uuid
     {
         return $this->id;
-    }
-
-    public function getIdTaskProposal(): ?string
-    {
-        return $this->idTaskProposal;
-    }
-
-    public function setIdTaskProposal(string $idTaskProposal): static
-    {
-        $this->idTaskProposal = $idTaskProposal;
-
-        return $this;
     }
 
     public function getProposedPrice(): ?float
@@ -62,7 +51,6 @@ class TaskProposal
     public function setProposedPrice(float $proposedPrice): static
     {
         $this->proposedPrice = $proposedPrice;
-
         return $this;
     }
 
@@ -74,7 +62,6 @@ class TaskProposal
     public function setStatus(string $status): static
     {
         $this->status = $status;
-
         return $this;
     }
 
@@ -83,34 +70,25 @@ class TaskProposal
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function getAgent(): ?Agent
     {
-        $this->createdAt = $createdAt;
+        return $this->agent;
+    }
 
+    public function setAgent(?Agent $agent): static
+    {
+        $this->agent = $agent;
         return $this;
     }
 
-    public function getIdAgent(): ?Agent
+    public function getTask(): ?Task
     {
-        return $this->idAgent;
+        return $this->task;
     }
 
-    public function setIdAgent(?Agent $idAgent): static
+    public function setTask(?Task $task): static
     {
-        $this->idAgent = $idAgent;
-
-        return $this;
-    }
-
-    public function getIdTask(): ?Task
-    {
-        return $this->idTask;
-    }
-
-    public function setIdTask(?Task $idTask): static
-    {
-        $this->idTask = $idTask;
-
+        $this->task = $task;
         return $this;
     }
 }

@@ -25,31 +25,22 @@ class TaskRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('t')
             ->where('t.status = :status')
             ->setParameter('status', 'pending')
-            ->orderBy('t.createdAt', 'DESC')
+            ->orderBy('CASE WHEN t.updatedAt <> t.createdAt THEN 1 ELSE 0 END', 'DESC')
+            ->addOrderBy('CASE WHEN t.updatedAt <> t.createdAt THEN t.updatedAt ELSE t.createdAt END', 'DESC')
             ->getQuery()
             ->getResult();
     }
 
-    public function findByTag($tagId): array
-    {
-        return $this->createQueryBuilder('t')
-            ->join('t.tags', 'tg') // Jointure avec les tags
-            ->where('tg.id = :tagId')
-            ->setParameter('tagId', $tagId)
-            ->orderBy('t.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
-    }
 
     public function findByMultipleTags(array $tagIds): array
     {
         return $this->createQueryBuilder('t')
             ->join('t.tags', 'tg')
             ->where('tg.id IN (:tagIds)')
-            ->setParameter('tagIds', $tagIds, \Doctrine\DBAL\Connection::PARAM_STR_ARRAY) // On force le tableau
-            ->orderBy('t.createdAt', 'DESC')
+            ->setParameter('tagIds', $tagIds, \Doctrine\DBAL\Connection::PARAM_STR_ARRAY)
+            ->orderBy('CASE WHEN t.updatedAt <> t.createdAt THEN 1 ELSE 0 END', 'DESC')
+            ->addOrderBy('CASE WHEN t.updatedAt <> t.createdAt THEN t.updatedAt ELSE t.createdAt END', 'DESC')
             ->getQuery()
             ->getResult();
     }
-
 }
