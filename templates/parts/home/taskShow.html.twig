@@ -1,28 +1,33 @@
-{% if tasks is empty %}
-    <p>Aucune tâche pour le moment.</p>
-{% else %}
-    {% for task in tasks %}
-        <article class="mb-6 p-4 border border-gray-200 rounded-md shadow-sm">
-            <h3 class="text-xl font-bold mb-2">
-                {{ task.title }}
-            </h3>
+<div id="taskContainer">
+    {% if tasks is empty %}
+        <p>Aucune tâche correspondant aux tags sélectionnés.</p>
+    {% else %}
+        {% for task in tasks %}
+            <article class="mb-6 p-4 border border-gray-200 rounded-md shadow-sm">
+                <h3 class="text-xl font-bold mb-2">
+                    {{ task.title }}
+                </h3>
 
-            {% if task.description %}
-                <p class="mb-2">{{ task.description }}</p>
-            {% endif %}
+                {% if task.description %}
+                    <p class="mb-2">{{ task.description }}</p>
+                {% endif %}
 
-            {# Boucle sur les images #}
-            {% if task.imagePaths is not empty %}
-                <div class="flex flex-wrap gap-4">
-                    {% for filename in task.imagePaths %}
-                        <img
-                                src="{{ asset('uploads/tasks/' ~ filename) }}"
-                                alt="{{ task.title }}"
-                                class="w-32 h-auto rounded shadow"
-                        />
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </article>
-    {% endfor %}
-{% endif %}
+                {% if task.imagePaths is not empty %}
+                    <div class="flex flex-wrap gap-4">
+                        {% for filename in task.imagePaths %}
+                            <img
+                                    src="{{ asset('uploads/tasks/' ~ filename) }}"
+                                    alt="{{ task.title }}"
+                                    class="w-32 h-auto rounded shadow"
+                            />
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <p class="text-sm text-gray-500 mb-2">
+                    Créé il y a {{ task.createdAt|ago }}
+                </p>
+            </article>
+        {% endfor %}
+    {% endif %}
+</div>

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Task;
 use App\Form\TaskFormType;
 use App\Repository\TaskRepository;
+use App\Repository\TagRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -19,15 +20,14 @@ class DefaultController extends AbstractController
     public function index(
         Request $request,
         EntityManagerInterface $em,
-        TaskRepository $taskRepository
+        TaskRepository $taskRepository,
+        TagRepository $tagRepository
     ): Response {
         $task = new Task();
-
         $form = $this->createForm(TaskFormType::class, $task);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
             /** @var UploadedFile[] $uploadedFiles */
             $uploadedFiles = $form->get('imageFiles')->getData();
 
@@ -61,11 +61,28 @@ class DefaultController extends AbstractController
             return $this->redirectToRoute('app_default');
         }
 
-        $tasks = $taskRepository->findOnlyPending();
+        $tags = $tagRepository->findAll();
+
+        $tagIds = $request->query->get('tags', '');
+        $tagIds = array_filter(explode(',', $tagIds));
+
+        if (!empty($tagIds)) {
+            $tasks = $taskRepository->findByMultipleTags($tagIds);
+        } else {
+            $tasks = $taskRepository->findOnlyPending();
+        }
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->render('parts/home/taskShow.html.twig', [
+                'tasks' => $tasks
+            ]);
+        }
 
         return $this->render('index.html.twig', [
             'form'  => $form->createView(),
             'tasks' => $tasks,
+            'tags'  => $tags,
+            'selectedTags' => $tagIds,
         ]);
     }
 }

@@ -30,4 +30,26 @@ class TaskRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findByTag($tagId): array
+    {
+        return $this->createQueryBuilder('t')
+            ->join('t.tags', 'tg') // Jointure avec les tags
+            ->where('tg.id = :tagId')
+            ->setParameter('tagId', $tagId)
+            ->orderBy('t.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByMultipleTags(array $tagIds): array
+    {
+        return $this->createQueryBuilder('t')
+            ->join('t.tags', 'tg')
+            ->where('tg.id IN (:tagIds)')
+            ->setParameter('tagIds', $tagIds, \Doctrine\DBAL\Connection::PARAM_STR_ARRAY) // On force le tableau
+            ->orderBy('t.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
 }
