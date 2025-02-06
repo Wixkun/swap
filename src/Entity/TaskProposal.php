@@ -16,22 +16,21 @@ class TaskProposal
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     private ?Uuid $id = null;
 
-    #[ORM\Column]
-    private ?float $proposedPrice = null;
+    #[ORM\Column(length: 100)]
+    private ?string $pseudo = null;
 
-    #[ORM\Column(length: 50)]
-    private ?string $status = 'pending';
+    #[ORM\Column(length: 20)]
+    private ?string $phoneNumber = null;
 
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
+    #[ORM\Column(nullable: true)]
+    private ?float $ratingGlobal = null;
 
-    #[ORM\ManyToOne(targetEntity: Agent::class, inversedBy: 'taskProposals')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Agent $agent = null;
+    #[ORM\OneToOne(inversedBy: 'idAgent')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?User $idUser = null;
 
-    #[ORM\ManyToOne(targetEntity: Task::class, inversedBy: 'taskProposals')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Task $task = null;
+    #[ORM\OneToMany(mappedBy: 'agent', targetEntity: TaskProposal::class, cascade: ['remove'], orphanRemoval: true)]
+    private Collection $taskProposals;
 
     public function __construct()
     {

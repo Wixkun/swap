@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250206071046 extends AbstractMigration
+final class Version20250206124030 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -66,13 +66,10 @@ final class Version20250206071046 extends AbstractMigration
         $this->addSql('CREATE INDEX IDX_6C0B4F04BAD26311 ON task_tag (tag_id)');
         $this->addSql('COMMENT ON COLUMN task_tag.task_id IS \'(DC2Type:uuid)\'');
         $this->addSql('COMMENT ON COLUMN task_tag.tag_id IS \'(DC2Type:uuid)\'');
-        $this->addSql('CREATE TABLE task_proposal (id UUID NOT NULL, agent_id UUID NOT NULL, task_id UUID NOT NULL, proposed_price DOUBLE PRECISION NOT NULL, status VARCHAR(50) NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))');
-        $this->addSql('CREATE INDEX IDX_FF257E3E3414710B ON task_proposal (agent_id)');
-        $this->addSql('CREATE INDEX IDX_FF257E3E8DB60186 ON task_proposal (task_id)');
+        $this->addSql('CREATE TABLE task_proposal (id UUID NOT NULL, id_user_id UUID NOT NULL, pseudo VARCHAR(100) NOT NULL, phone_number VARCHAR(20) NOT NULL, rating_global DOUBLE PRECISION DEFAULT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_FF257E3E79F37AE5 ON task_proposal (id_user_id)');
         $this->addSql('COMMENT ON COLUMN task_proposal.id IS \'(DC2Type:uuid)\'');
-        $this->addSql('COMMENT ON COLUMN task_proposal.agent_id IS \'(DC2Type:uuid)\'');
-        $this->addSql('COMMENT ON COLUMN task_proposal.task_id IS \'(DC2Type:uuid)\'');
-        $this->addSql('COMMENT ON COLUMN task_proposal.created_at IS \'(DC2Type:datetime_immutable)\'');
+        $this->addSql('COMMENT ON COLUMN task_proposal.id_user_id IS \'(DC2Type:uuid)\'');
         $this->addSql('CREATE TABLE "user" (id UUID NOT NULL, email VARCHAR(255) NOT NULL, password VARCHAR(255) NOT NULL, roles JSON NOT NULL, reset_token VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_8D93D649E7927C74 ON "user" (email)');
         $this->addSql('COMMENT ON COLUMN "user".id IS \'(DC2Type:uuid)\'');
@@ -92,19 +89,18 @@ final class Version20250206071046 extends AbstractMigration
         $this->addSql('DROP TRIGGER IF EXISTS notify_trigger ON messenger_messages;');
         $this->addSql('CREATE TRIGGER notify_trigger AFTER INSERT OR UPDATE ON messenger_messages FOR EACH ROW EXECUTE PROCEDURE notify_messenger_messages();');
         $this->addSql('ALTER TABLE agent ADD CONSTRAINT FK_268B9C9D79F37AE5 FOREIGN KEY (id_user_id) REFERENCES "user" (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
-        $this->addSql('ALTER TABLE conversation ADD CONSTRAINT FK_8A8E26E98B870E04 FOREIGN KEY (id_customer_id) REFERENCES customer (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('ALTER TABLE conversation ADD CONSTRAINT FK_8A8E26E98B870E04 FOREIGN KEY (id_customer_id) REFERENCES customer (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE conversation ADD CONSTRAINT FK_8A8E26E964CF9D9E FOREIGN KEY (id_agent_id) REFERENCES agent (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE customer ADD CONSTRAINT FK_81398E0979F37AE5 FOREIGN KEY (id_user_id) REFERENCES "user" (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
-        $this->addSql('ALTER TABLE message ADD CONSTRAINT FK_B6BD307FE0F2C01E FOREIGN KEY (id_conversation_id) REFERENCES conversation (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
-        $this->addSql('ALTER TABLE message ADD CONSTRAINT FK_B6BD307F79F37AE5 FOREIGN KEY (id_user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
-        $this->addSql('ALTER TABLE review ADD CONSTRAINT FK_794381C664CF9D9E FOREIGN KEY (id_agent_id) REFERENCES agent (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('ALTER TABLE message ADD CONSTRAINT FK_B6BD307FE0F2C01E FOREIGN KEY (id_conversation_id) REFERENCES conversation (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('ALTER TABLE message ADD CONSTRAINT FK_B6BD307F79F37AE5 FOREIGN KEY (id_user_id) REFERENCES "user" (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('ALTER TABLE review ADD CONSTRAINT FK_794381C664CF9D9E FOREIGN KEY (id_agent_id) REFERENCES agent (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE skill_agent ADD CONSTRAINT FK_3A30FA15585C142 FOREIGN KEY (skill_id) REFERENCES skill (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE skill_agent ADD CONSTRAINT FK_3A30FA13414710B FOREIGN KEY (agent_id) REFERENCES agent (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE task ADD CONSTRAINT FK_527EDB257E3C61F9 FOREIGN KEY (owner_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE task_tag ADD CONSTRAINT FK_6C0B4F048DB60186 FOREIGN KEY (task_id) REFERENCES task (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE task_tag ADD CONSTRAINT FK_6C0B4F04BAD26311 FOREIGN KEY (tag_id) REFERENCES tag (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
-        $this->addSql('ALTER TABLE task_proposal ADD CONSTRAINT FK_FF257E3E3414710B FOREIGN KEY (agent_id) REFERENCES agent (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
-        $this->addSql('ALTER TABLE task_proposal ADD CONSTRAINT FK_FF257E3E8DB60186 FOREIGN KEY (task_id) REFERENCES task (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('ALTER TABLE task_proposal ADD CONSTRAINT FK_FF257E3E79F37AE5 FOREIGN KEY (id_user_id) REFERENCES "user" (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
     }
 
     public function down(Schema $schema): void
@@ -123,8 +119,7 @@ final class Version20250206071046 extends AbstractMigration
         $this->addSql('ALTER TABLE task DROP CONSTRAINT FK_527EDB257E3C61F9');
         $this->addSql('ALTER TABLE task_tag DROP CONSTRAINT FK_6C0B4F048DB60186');
         $this->addSql('ALTER TABLE task_tag DROP CONSTRAINT FK_6C0B4F04BAD26311');
-        $this->addSql('ALTER TABLE task_proposal DROP CONSTRAINT FK_FF257E3E3414710B');
-        $this->addSql('ALTER TABLE task_proposal DROP CONSTRAINT FK_FF257E3E8DB60186');
+        $this->addSql('ALTER TABLE task_proposal DROP CONSTRAINT FK_FF257E3E79F37AE5');
         $this->addSql('DROP TABLE agent');
         $this->addSql('DROP TABLE conversation');
         $this->addSql('DROP TABLE customer');

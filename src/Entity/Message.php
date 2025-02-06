@@ -26,12 +26,12 @@ class Message
     #[ORM\Column]
     private ?\DateTimeImmutable $sentAt = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Conversation::class, inversedBy: 'message')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Conversation $idConversation = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'messages')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $idUser = null;
 
     public function getId(): ?Uuid

@@ -29,8 +29,8 @@ class Review
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Agent::class, inversedBy: 'review')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Agent $idAgent = null;
 
     public function getId(): ?Uuid

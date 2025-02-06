@@ -23,8 +23,8 @@ class Conversation
     #[ORM\Column]
     private ?\DateTimeImmutable $startedAt = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Customer::class, inversedBy: 'conversation')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Customer $idCustomer = null;
 
     #[ORM\ManyToOne]
