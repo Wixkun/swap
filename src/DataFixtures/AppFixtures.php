@@ -184,7 +184,7 @@ class AppFixtures extends Fixture
         $task = new Task();
         $task->setTitle($taskData['title']);
         $task->setDescription($taskData['description']);
-        $task->setImagePaths([$faker->imageUrl()]);
+        $task->setImagePaths([]);
         $task->setStatus('pending');
         $task->setOwner($randomOwner->getIdUser());
         $task->addTag($faker->randomElement($tags));

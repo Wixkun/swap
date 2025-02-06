@@ -18,7 +18,6 @@ class TaskController extends AbstractController
     #[Route('/', name: 'app_customer_task_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        // Récupère uniquement les tâches du customer connecté
         $tasks = $entityManager->getRepository(Task::class)->findBy([
             'owner' => $this->getUser(),
         ]);
@@ -28,7 +27,6 @@ class TaskController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_customer_task_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Task $task, EntityManagerInterface $entityManager): Response
     {
         if ($task->getOwner() !== $this->getUser()) {
@@ -44,7 +42,9 @@ class TaskController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $task->setUpdatedAt(new \DateTimeImmutable());
 
-            $removeImages = $form->get('removeImages')->getData();
+            // Vérification avant de récupérer les images à supprimer
+            $removeImages = $form->has('removeImages') ? $form->get('removeImages')->getData() : [];
+
             if (!empty($removeImages)) {
                 $existingPaths = $task->getImagePaths();
                 foreach ($removeImages as $filenameToRemove) {
@@ -58,8 +58,8 @@ class TaskController extends AbstractController
                 }
                 $task->setImagePaths(array_values($existingPaths));
             }
-            $this->handleImageUpload($form, $task);
 
+            $this->handleImageUpload($form, $task);
             $entityManager->flush();
 
             $this->addFlash('success', 'Tâche mise à jour avec succès !');
