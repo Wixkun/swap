@@ -152,59 +152,59 @@ class AppFixtures extends Fixture
             $tags[] = $tag;
         }
 
-        $possibleTasks = [
-            [
-                'title'       => 'Résoudre une bagarre devant le bar local',
-                'description' => 'Besoin d’un agent pour calmer la situation et éviter les débordements.'
-            ],
-            [
-                'title'       => 'Gérer la rupture d’un couple en litige',
-                'description' => 'Cherche médiateur pour gérer documents, discussions, et partager les biens.'
-            ],
-            [
-                'title'       => 'Organisation d’une file d’attente pour la billetterie',
-                'description' => 'Nécessite un professionnel pour mettre en place des barrières et gérer le flux de personnes.'
-            ],
-            [
-                'title'       => 'Accompagnement à la démission d’un employé',
-                'description' => 'Besoin de conseils pour rédiger les courriers et faire respecter les délais légaux.'
-            ],
-            [
-                'title'       => 'Sécuriser une manifestation pacifique',
-                'description' => 'Besoin d’une équipe pour superviser le cortège et éviter les débordements.'
-            ],
-        ];
+    $possibleTasks = [
+        [
+            'title'       => 'Résoudre une bagarre devant le bar local',
+            'description' => 'Besoin d’un agent pour calmer la situation et éviter les débordements.'
+        ],
+        [
+            'title'       => 'Gérer la rupture d’un couple en litige',
+            'description' => 'Cherche médiateur pour gérer documents, discussions, et partager les biens.'
+        ],
+        [
+            'title'       => 'Organisation d’une file d’attente pour la billetterie',
+            'description' => 'Nécessite un professionnel pour mettre en place des barrières et gérer le flux de personnes.'
+        ],
+        [
+            'title'       => 'Accompagnement à la démission d’un employé',
+            'description' => 'Besoin de conseils pour rédiger les courriers et faire respecter les délais légaux.'
+        ],
+        [
+            'title'       => 'Sécuriser une manifestation pacifique',
+            'description' => 'Besoin d’une équipe pour superviser le cortège et éviter les débordements.'
+        ],
+    ];
 
-        $allCustomers = array_merge([$customer], $genericCustomers);
-        $tasks = [];
+    $allCustomers = array_merge([$customer], $genericCustomers);
 
-        foreach ($allCustomers as $cust) {
-            $numTasks = rand(1, 2);
-            for ($i = 0; $i < $numTasks; $i++) {
-                $taskData = $faker->randomElement($possibleTasks);
+    $tasks = [];
+    foreach ($possibleTasks as $taskData) {
+        $randomOwner = $faker->randomElement($allCustomers);
 
-                $task = new Task();
-                $task->setTitle($taskData['title']);
-                $task->setDescription($taskData['description']);
-                $task->setImagePaths([$faker->imageUrl()]);
-                $task->setStatus('pending');
-                $task->setOwner($cust->getIdUser());
-                $task->addTag($faker->randomElement($tags));
-                $task->setUpdatedAt(new \DateTime());
+        $task = new Task();
+        $task->setTitle($taskData['title']);
+        $task->setDescription($taskData['description']);
+        $task->setImagePaths([$faker->imageUrl()]);
+        $task->setStatus('pending');
+        $task->setOwner($randomOwner->getIdUser());
+        $task->addTag($faker->randomElement($tags));
+        $task->setUpdatedAt(new \DateTime());
 
-                $manager->persist($task);
-                $tasks[] = $task;
-            }
-        }
+        $manager->persist($task);
+        $tasks[] = $task;
+    }
 
-        foreach ($tasks as $task) {
-            $proposal = new TaskProposal();
-            $proposal->setTask($task);
-            $proposal->setAgent($faker->randomElement($allAgents));
-            $proposal->setProposedPrice($faker->randomFloat(2, 50, 500));
-            $proposal->setStatus('pending');
-            $manager->persist($proposal);
-        }
+    foreach ($tasks as $task) {
+        $proposal = new TaskProposal();
+        $proposal->setTask($task);
+        $proposal->setAgent($faker->randomElement($allAgents));
+        $proposal->setProposedPrice($faker->randomFloat(2, 50, 500));
+        $proposal->setStatus('pending');
+
+        $manager->persist($proposal);
+    }
+
+    $manager->flush();
 
         $conversations = [];
         foreach ($allCustomers as $cust) {
