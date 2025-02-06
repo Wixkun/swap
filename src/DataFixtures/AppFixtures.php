@@ -31,7 +31,7 @@ class AppFixtures extends Fixture
         $faker = Factory::create('fr_FR');
 
         $adminUser = new User();
-        $adminUser->setEmail('admin@admin.admin');
+        $adminUser->setEmail('admin@gmail.com');
         $adminUser->setRoles(['ROLE_ADMIN']);
         $adminUser->setPassword(
             $this->passwordHasher->hashPassword($adminUser, 'admin12345678')
@@ -39,7 +39,7 @@ class AppFixtures extends Fixture
         $manager->persist($adminUser);
 
         $customerUser = new User();
-        $customerUser->setEmail('customer@customer.customer');
+        $customerUser->setEmail('customer@gmail.com');
         $customerUser->setRoles(['ROLE_CUSTOMER']);
         $customerUser->setPassword(
             $this->passwordHasher->hashPassword($customerUser, 'customer12345678')
@@ -48,7 +48,7 @@ class AppFixtures extends Fixture
         $customer->setFirstName($faker->firstName);
         $customer->setLastName($faker->lastName);
         $customer->setCity($faker->city);
-        // Liaison bidirectionnelle
+
         $customer->setIdUser($customerUser);
         $customerUser->setIdCustomer($customer);
 
@@ -57,8 +57,7 @@ class AppFixtures extends Fixture
 
         $agentUser = new User();
         $agentUser->setEmail('agent@agent.agent');
-        // Selon votre demande, cet utilisateur a le rôle ROLE_CUSTOMER (modifiez si besoin)
-        $agentUser->setRoles(['ROLE_CUSTOMER']);
+        $agentUser->setRoles(['ROLE_AGENT']);
         $agentUser->setPassword(
             $this->passwordHasher->hashPassword($agentUser, 'agent12345678')
         );
@@ -66,16 +65,16 @@ class AppFixtures extends Fixture
         $agent->setPseudo($faker->userName);
         $agent->setPhoneNumber($faker->phoneNumber);
         $agent->setRatingGlobal($faker->randomFloat(2, 0, 5));
-        // Liaison bidirectionnelle
+
         $agent->setIdUser($agentUser);
         $agentUser->setIdAgent($agent);
 
         $manager->persist($agent);
         $manager->persist($agentUser);
 
-        $genericUsers   = [];
-        $genericCustomers = [];
-        $genericAgents    = [];
+        $genericUsers      = [];
+        $genericCustomers  = [];
+        $genericAgents     = [];
 
         for ($i = 0; $i < 10; $i++) {
             $user = new User();
@@ -91,6 +90,7 @@ class AppFixtures extends Fixture
                 $cust->setFirstName($faker->firstName);
                 $cust->setLastName($faker->lastName);
                 $cust->setCity($faker->city);
+
                 $cust->setIdUser($user);
                 $user->setIdCustomer($cust);
 
@@ -103,26 +103,38 @@ class AppFixtures extends Fixture
                 $ag->setPseudo($faker->userName);
                 $ag->setPhoneNumber($faker->phoneNumber);
                 $ag->setRatingGlobal($faker->randomFloat(2, 0, 5));
+
                 $ag->setIdUser($user);
                 $user->setIdAgent($ag);
 
                 $manager->persist($ag);
                 $genericAgents[] = $ag;
             }
+
             $manager->persist($user);
             $genericUsers[] = $user;
         }
 
+        $skillData = [
+            ['name' => 'Bagarre',       'description' => 'Gestion et résolution de conflits physiques ou verbaux'],
+            ['name' => 'Rupture',       'description' => 'Accompagnement et médiation lors de séparations difficiles'],
+            ['name' => 'File d’attente','description' => 'Organisation et gestion des flux de personnes'],
+            ['name' => 'Démission',     'description' => 'Conseils et démarches administratives pour une démission'],
+            ['name' => 'Manifestation', 'description' => 'Supervision et encadrement de mouvements de protestation']
+        ];
+
         $skills = [];
-        for ($i = 0; $i < 5; $i++) {
+        foreach ($skillData as $data) {
             $skill = new Skill();
-            $skill->setName(ucfirst($faker->word));
-            $skill->setDescription($faker->sentence);
+            $skill->setName($data['name']);
+            $skill->setDescription($data['description']);
+
             $manager->persist($skill);
             $skills[] = $skill;
         }
 
         $allAgents = array_merge([$agent], $genericAgents);
+
         foreach ($allAgents as $agentObj) {
             $nbSkills = rand(1, 3);
             $selectedSkills = $faker->randomElements($skills, $nbSkills);
@@ -131,22 +143,49 @@ class AppFixtures extends Fixture
             }
         }
 
+        $tagNames = ['Violence', 'Séparation', 'Organisation', 'Procédure', 'Conflit'];
         $tags = [];
-        for ($i = 0; $i < 5; $i++) {
+        foreach ($tagNames as $tagName) {
             $tag = new Tag();
-            $tag->setName(ucfirst($faker->word));
+            $tag->setName($tagName);
             $manager->persist($tag);
             $tags[] = $tag;
         }
 
+        $possibleTasks = [
+            [
+                'title'       => 'Résoudre une bagarre devant le bar local',
+                'description' => 'Besoin d’un agent pour calmer la situation et éviter les débordements.'
+            ],
+            [
+                'title'       => 'Gérer la rupture d’un couple en litige',
+                'description' => 'Cherche médiateur pour gérer documents, discussions, et partager les biens.'
+            ],
+            [
+                'title'       => 'Organisation d’une file d’attente pour la billetterie',
+                'description' => 'Nécessite un professionnel pour mettre en place des barrières et gérer le flux de personnes.'
+            ],
+            [
+                'title'       => 'Accompagnement à la démission d’un employé',
+                'description' => 'Besoin de conseils pour rédiger les courriers et faire respecter les délais légaux.'
+            ],
+            [
+                'title'       => 'Sécuriser une manifestation pacifique',
+                'description' => 'Besoin d’une équipe pour superviser le cortège et éviter les débordements.'
+            ],
+        ];
+
         $allCustomers = array_merge([$customer], $genericCustomers);
         $tasks = [];
+
         foreach ($allCustomers as $cust) {
             $numTasks = rand(1, 2);
             for ($i = 0; $i < $numTasks; $i++) {
+                $taskData = $faker->randomElement($possibleTasks);
+
                 $task = new Task();
-                $task->setTitle($faker->sentence(6, true));
-                $task->setDescription($faker->paragraph);
+                $task->setTitle($taskData['title']);
+                $task->setDescription($taskData['description']);
                 $task->setImagePaths([$faker->imageUrl()]);
                 $task->setStatus('pending');
                 $task->setOwner($cust->getIdUser());
@@ -183,6 +222,7 @@ class AppFixtures extends Fixture
                 $message->setContent($faker->sentence);
                 $message->setSentAt(new \DateTimeImmutable());
                 $message->setIdConversation($conv);
+
                 if ($i % 2 === 0) {
                     $message->setIdUser($conv->getIdCustomer()->getIdUser());
                 } else {
