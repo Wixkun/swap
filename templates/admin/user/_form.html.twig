@@ -82,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function () {
     roleInputs.forEach(input => input.addEventListener('change', toggleContainers));
     toggleContainers();
 
-    // Limiter la saisie du phoneAgent à 12 caractères
     const phoneInput = document.querySelector('input[name="user[phoneAgent]"]');
     if (phoneInput) {
         phoneInput.addEventListener('input', function () {
@@ -92,13 +91,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Auto-complétion de la ville
     const cityField = document.querySelector('.cityCustomer-autocomplete-field');
     const suggestionsList = document.getElementById('cityCustomer-suggestions');
     const citySelected = document.getElementById('cityCustomerSelected');
     const form = document.getElementById('user-form');
-
-    // Stocker la valeur initiale de la ville pour détecter si l'utilisateur l'a modifiée
     const initialCityValue = cityField ? cityField.value : '';
 
     function hideSuggestions() {
@@ -114,7 +110,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         cityField.addEventListener('input', async () => {
-            // L'utilisateur modifie la ville => on repasse citySelected à false
             citySelected.value = "false"; 
             const query = cityField.value.trim();
 
@@ -162,17 +157,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Validation avant soumission : on ne force la sélection dans la liste
-        // QUE si la ville a été modifiée par rapport à la valeur initiale
         form.addEventListener('submit', (e) => {
             if (!cityField) {
                 return;
             }
-            // Si la ville n'a pas changé depuis le chargement, on laisse passer
             if (cityField.value === initialCityValue) {
                 return;
             }
-            // Sinon, si la ville n'est pas vide et que citySelected = false => on bloque
             if (cityField.value !== '' && citySelected.value === "false") {
                 e.preventDefault();
                 alert("Veuillez sélectionner une ville dans la liste de suggestions.");
