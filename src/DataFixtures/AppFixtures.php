@@ -184,8 +184,8 @@ class AppFixtures extends Fixture
         $task = new Task();
         $task->setTitle($taskData['title']);
         $task->setDescription($taskData['description']);
+        $task->setImagePaths([]);
         $task->setStatus('pending');
-        $task->setImagePaths([$faker->imageUrl()]);
         $task->setOwner($randomOwner->getIdUser());
         $task->addTag($faker->randomElement($tags));
         $task->setUpdatedAt(new \DateTime());
@@ -194,7 +194,43 @@ class AppFixtures extends Fixture
         $tasks[] = $task;
     }
 
+    foreach ($tasks as $task) {
+        $proposal = new TaskProposal();
+        $proposal->setTask($task);
+        $proposal->setAgent($faker->randomElement($allAgents));
+        $proposal->setProposedPrice($faker->randomFloat(2, 50, 500));
+        $proposal->setStatus('pending');
+
+        $manager->persist($proposal);
+    }
+
     $manager->flush();
+
+        $conversations = [];
+        foreach ($allCustomers as $cust) {
+            $conversation = new Conversation();
+            $conversation->setIdCustomer($cust);
+            $conversation->setIdAgent($faker->randomElement($allAgents));
+            $conversation->setStartedAt(new \DateTimeImmutable());
+            $manager->persist($conversation);
+            $conversations[] = $conversation;
+        }
+
+        foreach ($conversations as $conv) {
+            for ($i = 0; $i < 3; $i++) {
+                $message = new Message();
+                $message->setContent($faker->sentence);
+                $message->setSentAt(new \DateTimeImmutable());
+                $message->setIdConversation($conv);
+
+                if ($i % 2 === 0) {
+                    $message->setIdUser($conv->getIdCustomer()->getIdUser());
+                } else {
+                    $message->setIdUser($conv->getIdAgent()->getIdUser());
+                }
+                $manager->persist($message);
+            }
+        }
 
         foreach ($allAgents as $agentObj) {
             $review = new Review();

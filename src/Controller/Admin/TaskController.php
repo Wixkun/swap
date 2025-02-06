@@ -65,7 +65,8 @@ final class TaskController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $task->setUpdatedAt(new \DateTimeImmutable());
 
-            $removeImages = $form->get('removeImages')->getData();
+            $removeImages = $form->has('removeImages') ? $form->get('removeImages')->getData() : [];
+
             if (!empty($removeImages)) {
                 $existingPaths = $task->getImagePaths();
                 foreach ($removeImages as $filenameToRemove) {
