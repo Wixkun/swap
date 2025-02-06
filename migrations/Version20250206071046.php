@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250206013022 extends AbstractMigration
+final class Version20250206071046 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -19,6 +19,7 @@ final class Version20250206013022 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+        // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE TABLE agent (id UUID NOT NULL, id_user_id UUID NOT NULL, pseudo VARCHAR(100) NOT NULL, phone_number VARCHAR(20) NOT NULL, rating_global DOUBLE PRECISION DEFAULT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_268B9C9D79F37AE5 ON agent (id_user_id)');
         $this->addSql('COMMENT ON COLUMN agent.id IS \'(DC2Type:uuid)\'');
@@ -108,6 +109,7 @@ final class Version20250206013022 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
+        // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE SCHEMA public');
         $this->addSql('ALTER TABLE agent DROP CONSTRAINT FK_268B9C9D79F37AE5');
         $this->addSql('ALTER TABLE conversation DROP CONSTRAINT FK_8A8E26E98B870E04');
