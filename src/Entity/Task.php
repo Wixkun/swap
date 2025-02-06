@@ -44,7 +44,7 @@ class Task
     #[ORM\JoinColumn(nullable: false)]
     private ?User $owner = null;
 
-    #[ORM\OneToMany(targetEntity: TaskProposal::class, mappedBy: 'task')]
+    #[ORM\OneToMany(targetEntity: TaskProposal::class, mappedBy: 'task', cascade: ['remove'], orphanRemoval: true)]
     private Collection $taskProposals;
 
     public function __construct()
