@@ -45,7 +45,7 @@ class AgentRegistrationController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Votre compte agent a été créé avec succès.');
-            return $this->redirectToRoute('app_default');
+            return $this->redirectToRoute('app_login');
         }
 
         return $this->render('registration/register_agent.html.twig', [

@@ -3,7 +3,7 @@
 {% block body %}
 <div class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
     <div class="w-full max-w-md bg-white shadow-lg rounded-lg p-8">
-        <h1 class="text-2xl font-bold text-gray-800 text-center mb-6">Créer un compte</h1>
+        <h1 class="text-2xl font-bold text-gray-800 text-center mb-6">Créer un compte agent</h1>
 
         {% for message in app.flashes('success') %}
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
@@ -39,7 +39,12 @@
 
         <p class="text-gray-600 text-sm text-center mt-4">
             Déjà un compte ?
-            <a href="{{ path('app_default') }}" class="text-black font-semibold hover:underline">Se connecter</a>
+            <a href="{{ path('app_login') }}" class="text-black font-semibold hover:underline">Se connecter</a>
+        </p>
+
+        <p class="text-gray-600 text-sm text-center mt-4">
+            s'incrire en tant que client
+            <a href="{{ path('app_register') }}" class="text-black font-semibold hover:underline">S'incrire en tant que client</a>
         </p>
     </div>
 </div>

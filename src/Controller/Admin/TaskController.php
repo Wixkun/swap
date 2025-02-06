@@ -57,7 +57,6 @@ final class TaskController extends AbstractController
             return $this->redirectToRoute('app_task_index');
         }
 
-        // Passez les images existantes dans l'option "existing_images"
         $form = $this->createForm(TaskType::class, $task, [
             'existing_images' => $task->getImagePaths() ?? [],
         ]);
@@ -66,25 +65,20 @@ final class TaskController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $task->setUpdatedAt(new \DateTimeImmutable());
 
-            // Traitement du champ pour la suppression d'images existantes
             $removeImages = $form->get('removeImages')->getData();
             if (!empty($removeImages)) {
                 $existingPaths = $task->getImagePaths();
                 foreach ($removeImages as $filenameToRemove) {
                     if (($key = array_search($filenameToRemove, $existingPaths)) !== false) {
                         unset($existingPaths[$key]);
-                        // Optionnel : Supprimez le fichier du système de fichiers
                         $filePath = $this->getParameter('uploads_directory') . '/' . $filenameToRemove;
                         if (file_exists($filePath)) {
                             unlink($filePath);
                         }
                     }
                 }
-                // Ré-indexation du tableau et mise à jour de l'entité
                 $task->setImagePaths(array_values($existingPaths));
             }
-
-            // Traitement de l'ajout de nouvelles images
             $this->handleImageUpload($form, $task);
 
             $entityManager->flush();
