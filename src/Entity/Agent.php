@@ -3,10 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\AgentRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
-use Symfony\Bridge\Doctrine\Types\UuidType;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
@@ -14,17 +12,11 @@ use Doctrine\Common\Collections\Collection;
 class Agent
 {
     #[ORM\Id]
-    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    #[ORM\Column(type: 'uuid', unique: true)]
     private ?Uuid $id = null;
 
-    #[ORM\OneToMany(targetEntity: TaskProposal::class, mappedBy: 'agent')]
+    #[ORM\OneToMany(targetEntity: TaskProposal::class, mappedBy: 'agent', cascade: ['remove'], orphanRemoval: true)]
     private Collection $taskProposals;
-
-    public function __construct()
-    {
-        $this->id = Uuid::v4();
-        $this->taskProposals = new ArrayCollection();
-    }
 
     #[ORM\Column(length: 100)]
     private ?string $pseudo = null;
@@ -39,70 +31,57 @@ class Agent
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $idUser = null;
 
+    public function __construct()
+    {
+        $this->id = Uuid::v4();
+        $this->taskProposals = new ArrayCollection();
+    }
+
     public function getId(): ?Uuid
     {
         return $this->id;
     }
-
-    public function getIdAgent(): ?string
-    {
-        return $this->idAgent;
-    }
-
-    public function setIdAgent(string $idAgent): static
-    {
-        $this->idAgent = $idAgent;
-
-        return $this;
-    }
-
+    // getIdAgent / setIdAgent (inutilisés, sans incidence sur cascade)
     public function getPseudo(): ?string
     {
         return $this->pseudo;
     }
-
     public function setPseudo(string $pseudo): static
     {
         $this->pseudo = $pseudo;
-
         return $this;
     }
-
     public function getPhoneNumber(): ?string
     {
         return $this->phoneNumber;
     }
-
     public function setPhoneNumber(string $phoneNumber): static
     {
         $this->phoneNumber = $phoneNumber;
-
         return $this;
     }
-
     public function getRatingGlobal(): ?float
     {
         return $this->ratingGlobal;
     }
-
     public function setRatingGlobal(?float $ratingGlobal): static
     {
         $this->ratingGlobal = $ratingGlobal;
-
         return $this;
     }
-
     public function getIdUser(): ?User
     {
         return $this->idUser;
     }
-
     public function setIdUser(User $user): self
     {
         $this->idUser = $user;
         return $this;
     }
 
+    /**
+     * @return Collection<int, TaskProposal>
+     */
     public function getTaskProposals(): Collection
     {
         return $this->taskProposals;

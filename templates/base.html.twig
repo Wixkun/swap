@@ -42,15 +42,13 @@
 
             {% if app.user %}
                 <div class="flex flex-row gap-4 my-10 items-center">
-                    <div class="flex flex-row gap-1 transition duration-200 ease-in-out text-lg font-ubuntu hover:bg-white hover:bg-opacity-20 p-2 rounded-full cursor-pointer">
-                        {% if is_granted('ROLE_ADMIN') %}
+                    {% if is_granted('ROLE_ADMIN') %}
                         <a href="{{ path('app_admin' )}}">
                             {{ app.user.email|split('@')|first }}
                         </a>
-                        {% else %}
+                    {% else %}
                         {{ app.user.email|split('@')|first }}
-                        {% endif %}
-                    </div>
+                    {% endif %}
 
                     <a href="{{ path('app_logout') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 cursor-pointer">
