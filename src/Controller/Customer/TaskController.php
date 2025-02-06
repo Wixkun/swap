@@ -6,6 +6,8 @@ use App\Entity\Task;
 use App\Form\TaskType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -29,20 +31,35 @@ class TaskController extends AbstractController
     #[Route('/{id}/edit', name: 'app_customer_task_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Task $task, EntityManagerInterface $entityManager): Response
     {
-        // Vérification que la tâche appartient bien au customer connecté
         if ($task->getOwner() !== $this->getUser()) {
             $this->addFlash('error', 'Vous ne pouvez modifier que vos propres tâches.');
             return $this->redirectToRoute('app_default');
         }
 
         $form = $this->createForm(TaskType::class, $task, [
-            // Vous pouvez passer des options spécifiques si nécessaire
+            'existing_images' => $task->getImagePaths() ?? [],
         ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Si nécessaire, gérer la mise à jour de "updatedAt", le traitement des images, etc.
             $task->setUpdatedAt(new \DateTimeImmutable());
+
+            $removeImages = $form->get('removeImages')->getData();
+            if (!empty($removeImages)) {
+                $existingPaths = $task->getImagePaths();
+                foreach ($removeImages as $filenameToRemove) {
+                    if (($key = array_search($filenameToRemove, $existingPaths)) !== false) {
+                        unset($existingPaths[$key]);
+                        $filePath = $this->getParameter('uploads_directory') . '/' . $filenameToRemove;
+                        if (file_exists($filePath)) {
+                            unlink($filePath);
+                        }
+                    }
+                }
+                $task->setImagePaths(array_values($existingPaths));
+            }
+            $this->handleImageUpload($form, $task);
+
             $entityManager->flush();
 
             $this->addFlash('success', 'Tâche mise à jour avec succès !');
@@ -70,5 +87,35 @@ class TaskController extends AbstractController
         }
 
         return $this->redirectToRoute('app_default');
+    }
+
+    private function handleImageUpload($form, Task $task): void
+    {
+        /** @var UploadedFile[] $uploadedFiles */
+        $uploadedFiles = $form->get('imageFiles')->getData();
+
+        if (!empty($uploadedFiles)) {
+            $existingPaths = $task->getImagePaths() ?? [];
+
+            foreach ($uploadedFiles as $imageFile) {
+                if ($imageFile instanceof UploadedFile) { // Vérifie que c'est un fichier
+                    $newFilename = uniqid() . '.' . $imageFile->guessExtension();
+
+                    try {
+                        $imageFile->move(
+                            $this->getParameter('uploads_directory'),
+                            $newFilename
+                        );
+                    } catch (FileException $e) {
+                        $this->addFlash('error', 'Impossible d\'uploader l\'image : ' . $e->getMessage());
+                        continue;
+                    }
+
+                    $existingPaths[] = $newFilename;
+                }
+            }
+
+            $task->setImagePaths($existingPaths);
+        }
     }
 }

@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 
+
 #[ORM\Entity(repositoryClass: TaskProposalRepository::class)]
 class TaskProposal
 {

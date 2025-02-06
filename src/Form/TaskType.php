@@ -18,7 +18,6 @@ class TaskType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        // Champ pour ajouter de nouvelles images
         $builder
             ->add('title')
             ->add('description')
@@ -61,7 +60,6 @@ class TaskType extends AbstractType
                 'expanded' => true,
             ]);
 
-        // Si des images existantes sont fournies via l'option "existing_images", on ajoute un champ pour les supprimer
         if (!empty($options['existing_images'])) {
             // On prépare les choix sous forme "nom de fichier" => "nom de fichier"
             $choices = array_combine($options['existing_images'], $options['existing_images']);
@@ -80,7 +78,6 @@ class TaskType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Task::class,
-            // Par défaut, aucune image existante n'est transmise (utile pour le formulaire "new")
             'existing_images' => [],
         ]);
     }
