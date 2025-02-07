@@ -78,13 +78,12 @@
                     </div>
                 {% endif %}
 
-                {% if is_granted('ROLE_AGENT') %}
+                {% if is_granted('ROLE_AGENT') and task.owner != app.user %}
                     <div x-data="{ showOfferModal: false }">
                         <button @click="showOfferModal = true" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-300">
                             Faire une offre
                         </button>
 
-                        <!-- Modal popup -->
                         <div x-show="showOfferModal" style="display: none;" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
                             <div class="bg-white p-6 rounded-md shadow-lg max-w-sm w-full">
                                 <h2 class="text-xl font-bold mb-4">Proposer une offre</h2>

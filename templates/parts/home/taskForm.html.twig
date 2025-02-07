@@ -1,71 +1,70 @@
 {% block body %}
-<section class="w-full">
-    <h1 class="text-3xl font-bold text-blue-600 mb-4">Créer une tâche</h1>
+    <section class="w-full">
+        <h1 class="text-3xl font-bold text-blue-600 mb-4">Créer une tâche</h1>
 
-    {% for label, messages in app.flashes %}
-        {% for msg in messages %}
-            <div
-                class="mb-4 px-4 py-2 rounded-md
+        {% for label, messages in app.flashes %}
+            {% for msg in messages %}
+                <div
+                        class="mb-4 px-4 py-2 rounded-md
                        {{ label == 'success'
-                           ? 'bg-green-100 text-green-700 border-l-4 border-green-400'
-                           : 'bg-red-100 text-red-700 border-l-4 border-red-400' }}"
-            >
-                {{ msg }}
-            </div>
+                        ? 'bg-green-100 text-green-700 border-l-4 border-green-400'
+                        : 'bg-red-100 text-red-700 border-l-4 border-red-400' }}">
+
+                    {{ msg }}
+                </div>
+            {% endfor %}
         {% endfor %}
-    {% endfor %}
 
-    {{ form_start(form, {
-        action: path('app_default'),
-        method: 'POST',
-        attr: {
-            class: 'flex flex-col gap-4'
-        }
-    }) }}
+        {% if is_granted('ROLE_CUSTOMER') or is_granted('ROLE_ADMIN') %}
+            {{ form_start(form, {
+                action: path('app_default'),
+                method: 'POST',
+                attr: { class: 'flex flex-col gap-4' }
+            }) }}
 
-    {% for field in form %}
-        {% if field.vars.name != '_token' %}
-            <div>
-                {{ form_label(field, null, {'label_attr': {
-                    'class': 'block text-gray-700 font-semibold mb-1'
-                }}) }}
+            {% for field in form %}
+                {% if field.vars.name != '_token' %}
+                    <div>
+                        {{ form_label(field, null, {'label_attr': { 'class': 'block text-gray-700 font-semibold mb-1' }}) }}
 
+                        {% if field.vars.name == 'idTag' %}
+                            <div class="flex flex-wrap gap-3">
+                                {{ form_widget(field, { 'attr': { 'class': 'text-blue-600' } }) }}
+                            </div>
+                        {% else %}
+                            {{ form_widget(field, { 'attr': { 'class': 'w-full px-4 py-2 border border-gray-300 rounded-md
+                                                          focus:outline-none focus:ring-2 focus:ring-blue-500' } }) }}
+                        {% endif %}
 
-                {% if field.vars.name == 'idTag' %}
-                    <div class="flex flex-wrap gap-3">
-                        {{ form_widget(field, {
-                            'attr': {
-                                'class': 'text-blue-600'
-                            }
-                        }) }}
+                        {{ form_errors(field, { 'attr': { 'class': 'text-red-500 text-sm' } }) }}
                     </div>
-                {% else %}
-                    {{ form_widget(field, {
-                        'attr': {
-                            'class': 'w-full px-4 py-2 border border-gray-300 rounded-md
-                                      focus:outline-none focus:ring-2 focus:ring-blue-500'
-                        }
-                    }) }}
                 {% endif %}
+            {% endfor %}
 
-                {{ form_errors(field, {
-                    'attr': {'class': 'text-red-500 text-sm'}
-                }) }}
+            <button type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md
+                       shadow-md transition duration-300">
+                Enregistrer
+            </button>
+
+            {{ form_end(form) }}
+
+        {% else %}
+            <a href="{{ path('app_become_customer') }}"
+               class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md
+                  shadow-md transition duration-300 text-center block">
+                Devenir un customer pour poster une tâche
+            </a>
+        {% endif %}
+
+        {% if not is_granted('ROLE_AGENT') %}
+            <div class="mt-4">
+                <a href="{{ path('app_become_agent') }}"
+                   class="w-full bg-black hover:bg-white text-white hover:text-black font-semibold py-2 px-4 rounded-md
+                      shadow-md transition duration-300 text-center block">
+                    Devenir un agent pour répondre à des offres
+                </a>
             </div>
         {% endif %}
-    {% endfor %}
-
-    {% if is_granted('ROLE_CUSTOMER') or is_granted('ROLE_ADMIN') %}
-    <button type="submit"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md
-                   shadow-md transition duration-300">
-        Enregistrer
-    </button>
-    {% else %}
-        <a href="{{ path('app_login') }}" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-300">
-            Enregistrer
-        </a>
-    {% endif %}
-    {{ form_end(form) }}
-</section>
+    </section>
 {% endblock %}
