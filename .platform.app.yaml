@@ -23,10 +23,6 @@ hooks:
 relationships:
   database: "postgresql:postgresql"
 
-variables:
-  env:
-    DATABASE_URL: "pgsql://{default.username}:{default.password}@{default.host}:{default.port}/{default.path}"
-
 runtime:
   extensions:
     - pdo_pgsql
