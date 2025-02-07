@@ -25,7 +25,7 @@ relationships:
 
 variables:
   env:
-    DATABASE_URL: "pgsql://$(echo $PLATFORM_RELATIONSHIPS | base64 --decode | jq -r .database[0].username):$(echo $PLATFORM_RELATIONSHIPS | base64 --decode | jq -r .database[0].password)@$(echo $PLATFORM_RELATIONSHIPS | base64 --decode | jq -r .database[0].host):$(echo $PLATFORM_RELATIONSHIPS | base64 --decode | jq -r .database[0].port)/$(echo $PLATFORM_RELATIONSHIPS | base64 --decode | jq -r .database[0].path)"
+    DATABASE_URL: "pgsql://{default.username}:{default.password}@{default.host}:{default.port}/{default.path}"
 
 runtime:
   extensions:
