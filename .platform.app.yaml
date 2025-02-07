@@ -20,6 +20,11 @@ hooks:
   deploy: |
     php bin/console doctrine:migrations:migrate --no-interaction
 
+variables:
+  env:
+    DATABASE_URL: "pgsql://main:main@database.internal:5432/main"
+
+
 relationships:
   database: "postgresql:postgresql"
 
