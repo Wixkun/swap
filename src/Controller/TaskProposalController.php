@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
-
+use Stripe\StripeClient;
 use Psr\Log\LoggerInterface;
 
 class TaskProposalController extends AbstractController
@@ -176,9 +176,6 @@ class TaskProposalController extends AbstractController
             if (!isset($finalizedInvoice->hosted_invoice_url)) {
                 throw new \Exception("L'URL de la facture n'a pas été générée par Stripe.");
             }
-
-            $taskProposal->setInvoiceId($finalizedInvoice->id);
-            $em->flush();
 
             $logger->info("URL de la facture Stripe : " . $finalizedInvoice->hosted_invoice_url);
 
