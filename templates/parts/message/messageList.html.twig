@@ -32,7 +32,7 @@
                         {% endif %}
                         {% if message.taskProposal is not null and message.taskProposal.status == "pending" and message.taskProposal.task.owner == app.user %}
                             <div class="mt-2">
-                                <form action="{{ path('app_task_request_payment', {'id': message.taskProposal.id}) }}" method="post" class="inline">
+                                <form action="{{ path('app_task_accept', {'id': message.taskProposal.id}) }}" method="post" class="inline">
                                     <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
                                         Accepter
                                     </button>
@@ -40,15 +40,6 @@
                                 <form action="{{ path('app_task_refuse', {'id': message.id}) }}" method="post" class="inline">
                                     <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
                                         Refuser
-                                    </button>
-                                </form>
-                            </div>
-                        {% endif %}
-                        {% if message.taskProposal is not null and message.taskProposal.status == "waiting_payment" and message.taskProposal.agent.idUser == app.user and message.idUser != app.user %}
-                            <div class="mt-2">
-                                <form action="{{ path('app_task_pay', {'id': message.taskProposal.id}) }}" method="post">
-                                    <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-                                        Payer maintenant
                                     </button>
                                 </form>
                             </div>

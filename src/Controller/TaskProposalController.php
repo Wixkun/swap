@@ -13,6 +13,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+
+use Psr\Log\LoggerInterface;
 
 class TaskProposalController extends AbstractController
 {
@@ -74,68 +78,39 @@ class TaskProposalController extends AbstractController
         return $this->redirectToRoute('app_conversations_discussion', ['id' => $conversation->getId()]);
     }
 
-    #[Route('/taskproposal/{id}/request-payment', name: 'app_task_request_payment', methods: ['POST'])]
-    public function requestPayment(TaskProposal $taskProposal, EntityManagerInterface $em): Response
+    #[Route('/taskproposal/{id}/accept', name: 'app_task_accept', methods: ['POST'])]
+    public function acceptOffer(TaskProposal $taskProposal, StripeService $stripeService, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
 
         if (!$taskProposal || $taskProposal->getTask()->getOwner() !== $user) {
-            throw $this->createAccessDeniedException("Vous n'êtes pas autorisé à demander le paiement pour cette offre.");
+            throw $this->createAccessDeniedException("Vous n'êtes pas autorisé à accepter cette offre.");
         }
 
-        $message = $em->getRepository(Message::class)->findOneBy([
-            'taskProposal' => $taskProposal,
-            'idUser' => $taskProposal->getAgent()->getIdUser()
-        ]);
-
-        if (!$message) {
-            throw $this->createNotFoundException("Aucun message trouvé pour cette offre et cet agent.");
-        }
-
-        $conversation = $message->getIdConversation();
-
-        if (!$conversation) {
-            throw $this->createNotFoundException("Aucune conversation trouvée pour cette offre.");
+        if ($taskProposal->getStatus() !== 'pending') {
+            $this->addFlash('error', 'Cette offre ne peut plus être acceptée.');
+            return $this->redirectToRoute('app_conversations_discussion');
         }
 
         $taskProposal->setStatus('waiting_payment');
         $em->flush();
 
-        $newMessage = new Message();
-        $newMessage->setContent("Votre offre a été acceptée. Veuillez procéder au paiement pour valider votre engagement.");
-        $newMessage->setSentAt(new \DateTimeImmutable());
-        $newMessage->setIdConversation($conversation);
-        $newMessage->setIdUser($user);
-        $newMessage->setTaskProposal($taskProposal);
-        $em->persist($newMessage);
-        $em->flush();
+        $baseUrl = $this->getParameter('base_url');
+        $successUrl = $baseUrl . $this->generateUrl('app_task_payment_success', ['id' => $taskProposal->getId()]);
+        $cancelUrl = $baseUrl . $this->generateUrl('app_task_payment_cancel');
 
-        $this->addFlash('success', 'L\'offre a été acceptée et est en attente de paiement.');
-
-        return $this->redirectToRoute('app_conversations_discussion', ['id' => $conversation->getId()]);
-    }  
-
-    #[Route('/taskproposal/{id}/pay', name: 'app_task_pay', methods: ['POST'])]
-    public function pay(TaskProposal $taskProposal, StripeService $stripeService, EntityManagerInterface $em): Response
-    {
-        $user = $this->getUser();
-    
-        if (!$taskProposal || $taskProposal->getAgent()->getIdUser() !== $user) {
-            throw $this->createAccessDeniedException("Vous n'êtes pas autorisé à payer cette offre.");
+        try {
+            $session = $stripeService->createCheckoutSession(
+                $taskProposal->getProposedPrice(),
+                'eur',
+                $successUrl,
+                $cancelUrl
+            );
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Une erreur est survenue lors de la création du paiement : ' . $e->getMessage());
+            return $this->redirectToRoute('app_conversations_discussion');
         }
-    
-        if ($taskProposal->getStatus() !== 'waiting_payment') {
-            $this->addFlash('error', 'Le paiement ne peut être effectué que lorsque l\'offre est en attente de paiement.');
-            return $this->redirectToRoute('app_conversations_discussion', ['id' => $conversation->getId()]);
-        }
-    
-        $session = $stripeService->createCheckoutSession(
-            $taskProposal->getProposedPrice(),
-            'eur',
-            $this->generateUrl('app_task_payment_success', ['id' => $taskProposal->getId()], true),
-            $this->generateUrl('app_task_payment_cancel', [], true)
-        );
-    
+
         return $this->redirect($session->url);
     }
 
@@ -143,49 +118,81 @@ class TaskProposalController extends AbstractController
     public function paymentCancel(): Response
     {
         $this->addFlash('error', 'Paiement annulé.');
-        return $this->redirectToRoute('app_conversations_discussion', ['id' => $conversation->getId()]);
+        return $this->redirectToRoute('app_conversations_discussion');
     }
-    
+
     #[Route('/taskproposal/{id}/payment-success', name: 'app_task_payment_success')]
-    public function paymentSuccess(TaskProposal $taskProposal, EntityManagerInterface $em): Response
+    public function paymentSuccess(TaskProposal $taskProposal, EntityManagerInterface $em, MailerInterface $mailer, StripeService $stripeService, LoggerInterface $logger): Response
     {
         $user = $this->getUser();
-    
-        if (!$taskProposal || $taskProposal->getAgent()->getIdUser() !== $user) {
+
+        if (!$taskProposal || $taskProposal->getTask()->getOwner() !== $user) {
             throw $this->createAccessDeniedException("Vous n'êtes pas autorisé à confirmer ce paiement.");
         }
-    
+
         if ($taskProposal->getStatus() !== 'waiting_payment') {
             $this->addFlash('error', 'Ce paiement ne peut être validé que lorsque l\'offre est en attente de paiement.');
-            return $this->redirectToRoute('app_conversations_discussion', ['id' => $conversation->getId()]);
+            return $this->redirectToRoute('app_conversations');
         }
-    
+
         $taskProposal->setStatus('accepted');
         $taskProposal->getTask()->setStatus('in_progress');
         $em->flush();
-    
-        $message = $em->getRepository(Message::class)->findOneBy([
-            'taskProposal' => $taskProposal,
-            'idUser' => $taskProposal->getAgent()->getIdUser()
-        ]);
+        $logger->info("Statut de la tâche mis à jour avec succès.");
 
-        if (!$message) {
-            throw $this->createNotFoundException("Aucun message trouvé pour cette offre et cet agent.");
+        try {
+            $stripe = new \Stripe\StripeClient($stripeService->getSecretKey());
+            $logger->info("Connexion à Stripe OK.");
+
+            $customer = $stripe->customers->create([
+                'email' => $user->getEmail(),
+                'name' => $user->getIdCustomer()->getFirstName() . ' ' . $user->getIdCustomer()->getLastName(),
+            ]);
+            $logger->info("Client Stripe créé : " . $customer->id);
+
+            $invoiceItem = $stripe->invoiceItems->create([
+                'customer' => $customer->id,
+                'amount' => $taskProposal->getProposedPrice() * 100, 
+                'currency' => 'eur',
+                'description' => 'Paiement pour la tâche : ' . $taskProposal->getTask()->getTitle(),
+            ]);
+            $logger->info("Article ajouté à la facture.");
+
+            $invoice = $stripe->invoices->create([
+                'customer' => $customer->id,
+                'collection_method' => 'send_invoice',
+                'days_until_due' => 7, 
+            ]);
+            $logger->info("Facture créée : " . $invoice->id);
+
+            $finalizedInvoice = $stripe->invoices->finalizeInvoice($invoice->id);
+            $logger->info("Facture finalisée.");
+
+            if (!isset($finalizedInvoice->hosted_invoice_url)) {
+                throw new \Exception("L'URL de la facture n'a pas été générée par Stripe.");
+            }
+            $logger->info("URL de la facture Stripe : " . $finalizedInvoice->hosted_invoice_url);
+
+            $email = (new Email())
+                ->from('no-reply@ton-site.com')
+                ->to($user->getEmail())
+                ->subject('Votre facture est disponible')
+                ->text(
+                    "Bonjour,\n\nVotre paiement a été reçu pour la tâche \"" . $taskProposal->getTask()->getTitle() . "\".\n\n"
+                    . "Accédez à votre facture ici : " . $finalizedInvoice->hosted_invoice_url
+                );
+
+            $mailer->send($email);
+            $logger->info("Email envoyé avec succès à " . $user->getEmail());
+
+            $this->addFlash('success', 'Paiement réussi, tâche acceptée et facture envoyée.');
+
+        } catch (\Exception $e) {
+            $logger->error("Erreur : " . $e->getMessage());
+            $this->addFlash('error', 'Erreur lors de la création de la facture : ' . $e->getMessage());
         }
 
-        $conversation = $message->getIdConversation();
-        $message = new Message();
-        $message->setContent("Le paiement a été effectué avec succès. La tâche est maintenant en cours.");
-        $message->setSentAt(new \DateTimeImmutable());
-        $message->setIdConversation($conversation);
-        $message->setIdUser($user);
-        $message->setTaskProposal($taskProposal);
-        $em->persist($message);
-        $em->flush();
-    
-        $this->addFlash('success', 'Paiement réussi et offre acceptée.');
-    
-        return $this->redirectToRoute('app_conversations_discussion', ['id' => $conversation?->getId()]);
+        return $this->redirectToRoute('app_conversations');
     }
 
     #[Route('/message/{id}/refuse', name: 'app_task_refuse', methods: ['POST'])]
@@ -206,15 +213,6 @@ class TaskProposalController extends AbstractController
         $conversation = $message->getIdConversation();
 
         $taskProposal->setStatus('refused');
-        $em->flush();
-
-        $newMessage = new Message();
-        $newMessage->setContent("L'offre pour la tâche <strong>" . $taskProposal->getTask()->getTitle() . "</strong> a été <strong style='color: red;'>refusée</strong>.");
-        $newMessage->setSentAt(new \DateTimeImmutable());
-        $newMessage->setIdConversation($conversation);
-        $newMessage->setIdUser($user);
-        $newMessage->setTaskProposal($taskProposal);
-        $em->persist($newMessage);
         $em->flush();
 
         $this->addFlash('error', 'Offre refusée.');

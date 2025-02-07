@@ -14,19 +14,26 @@ web:
   locations:
     "/":
       root: "public"
-      index: ["index.php"]
-
+      passthru: "/index.php"
 hooks:
   deploy: |
     php bin/console doctrine:migrations:migrate --no-interaction
+  post_deploy: |
+    php bin/console doctrine:fixtures:load --no-interaction
+
+variables:
+  env:
+    DATABASE_URL: "pgsql://main:main@database.internal:5432/main"
+
 
 relationships:
   database: "postgresql:postgresql"
 
-variables:
-  env:
-    DATABASE_URL: "pgsql://${PLATFORM_RELATIONSHIPS[database][username]}:${PLATFORM_RELATIONSHIPS[database][password]}@${PLATFORM_RELATIONSHIPS[database][host]}:${PLATFORM_RELATIONSHIPS[database][port]}/${PLATFORM_RELATIONSHIPS[database][path]}"
-
 runtime:
   extensions:
     - pdo_pgsql
+
+workers:
+    messenger-consumer:
+        commands:
+            start: "php bin/console messenger:consume async --no-interaction"
