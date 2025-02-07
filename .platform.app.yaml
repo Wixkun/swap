@@ -2,6 +2,9 @@
 name: app
 type: php:8.2
 
+mounts:
+  "/app/var": "shared:files"
+
 build:
   flavor: composer
 
