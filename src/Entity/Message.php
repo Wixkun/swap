@@ -27,6 +27,21 @@ class Message
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $idUser = null;
 
+    #[ORM\ManyToOne(targetEntity: TaskProposal::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?TaskProposal $taskProposal = null;
+    
+    public function getTaskProposal(): ?TaskProposal
+    {
+        return $this->taskProposal;
+    }
+    
+    public function setTaskProposal(?TaskProposal $taskProposal): static
+    {
+        $this->taskProposal = $taskProposal;
+        return $this;
+    }    
+
     public function __construct()
     {
         $this->id = Uuid::v4();
