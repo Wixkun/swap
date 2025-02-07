@@ -132,7 +132,7 @@ class TaskProposalController extends AbstractController
 
         if ($taskProposal->getStatus() !== 'waiting_payment') {
             $this->addFlash('error', 'Ce paiement ne peut être validé que lorsque l\'offre est en attente de paiement.');
-            return $this->redirectToRoute('app_conversations');
+            return $this->redirectToRoute('app_conversations_discussion');
         }
 
         $taskProposal->setStatus('accepted');
@@ -192,7 +192,7 @@ class TaskProposalController extends AbstractController
             $this->addFlash('error', 'Erreur lors de la création de la facture : ' . $e->getMessage());
         }
 
-        return $this->redirectToRoute('app_conversations');
+        return $this->redirectToRoute('app_conversations_discussion');
     }
 
     #[Route('/message/{id}/refuse', name: 'app_task_refuse', methods: ['POST'])]
