@@ -1,23 +1,17 @@
+# .platform.app.yaml
 name: app
 type: php:8.2
 
 build:
   flavor: composer
-  commands:
-    - composer install --prefer-dist --no-dev --no-progress --no-suggest
 
 web:
   locations:
     "/":
       root: "public"
       index: ["index.php"]
-      allow: true
-      php: "8.2"
-  error_document: "/error.html"
 
 hooks:
-  build: |
-    composer install --prefer-dist --no-dev --no-progress --no-suggest
   deploy: |
     php bin/console doctrine:migrations:migrate --no-interaction
 
