@@ -121,47 +121,53 @@ class TaskProposalController extends AbstractController
         return $this->redirectToRoute('app_conversations_discussion');
     }
 
-    #[Route('/taskproposal/{id}/payment-success', name: 'app_task_payment_success')]
-    public function paymentSuccess(TaskProposal $taskProposal, EntityManagerInterface $em, MailerInterface $mailer, StripeService $stripeService, LoggerInterface $logger): Response
-    {
+    public function paymentSuccess(
+        TaskProposal $taskProposal,
+        EntityManagerInterface $em,
+        MailerInterface $mailer,
+        StripeService $stripeService,
+        LoggerInterface $logger
+    ): Response {
         $user = $this->getUser();
 
+        // Vérification de la légitimité de l'utilisateur
         if (!$taskProposal || $taskProposal->getTask()->getOwner() !== $user) {
-            throw $this->createAccessDeniedException("Vous n'êtes pas autorisé à confirmer ce paiement.");
+            throw $this->createAccessDeniedException(
+                "Vous n'êtes pas autorisé à confirmer ce paiement."
+            );
         }
 
+        // Vérification du statut
         if ($taskProposal->getStatus() !== 'waiting_payment') {
-            $this->addFlash('error', 'Ce paiement ne peut être validé que lorsque l\'offre est en attente de paiement.');
+            $this->addFlash(
+                'error',
+                "Ce paiement ne peut être validé que lorsque l'offre est en attente de paiement."
+            );
             return $this->redirectToRoute('app_conversations_discussion');
         }
 
-        $taskProposal->setStatus('accepted');
-        $taskProposal->getTask()->setStatus('in_progress');
-        $em->flush();
-        $logger->info("Statut de la tâche mis à jour avec succès.");
-
         try {
-            $stripe = new \Stripe\StripeClient($stripeService->getSecretKey());
+            $stripe = new StripeClient($stripeService->getSecretKey());
             $logger->info("Connexion à Stripe OK.");
 
             $customer = $stripe->customers->create([
                 'email' => $user->getEmail(),
-                'name' => $user->getIdCustomer()->getFirstName() . ' ' . $user->getIdCustomer()->getLastName(),
+                'name'  => $user->getIdCustomer()->getFirstName() . ' ' . $user->getIdCustomer()->getLastName(),
             ]);
             $logger->info("Client Stripe créé : " . $customer->id);
 
             $invoiceItem = $stripe->invoiceItems->create([
-                'customer' => $customer->id,
-                'amount' => $taskProposal->getProposedPrice() * 100, 
-                'currency' => 'eur',
+                'customer'    => $customer->id,
+                'amount'      => $taskProposal->getProposedPrice() * 100,
+                'currency'    => 'eur',
                 'description' => 'Paiement pour la tâche : ' . $taskProposal->getTask()->getTitle(),
             ]);
             $logger->info("Article ajouté à la facture.");
 
             $invoice = $stripe->invoices->create([
-                'customer' => $customer->id,
-                'collection_method' => 'send_invoice',
-                'days_until_due' => 7, 
+                'customer'         => $customer->id,
+                'collection_method'=> 'send_invoice',
+                'days_until_due'   => 7,
             ]);
             $logger->info("Facture créée : " . $invoice->id);
 
@@ -171,6 +177,10 @@ class TaskProposalController extends AbstractController
             if (!isset($finalizedInvoice->hosted_invoice_url)) {
                 throw new \Exception("L'URL de la facture n'a pas été générée par Stripe.");
             }
+
+            $taskProposal->setInvoiceId($finalizedInvoice->id);
+            $em->flush();
+
             $logger->info("URL de la facture Stripe : " . $finalizedInvoice->hosted_invoice_url);
 
             $email = (new Email())
@@ -178,21 +188,85 @@ class TaskProposalController extends AbstractController
                 ->to($user->getEmail())
                 ->subject('Votre facture est disponible')
                 ->text(
-                    "Bonjour,\n\nVotre paiement a été reçu pour la tâche \"" . $taskProposal->getTask()->getTitle() . "\".\n\n"
-                    . "Accédez à votre facture ici : " . $finalizedInvoice->hosted_invoice_url
+                    "Bonjour,\n\n" .
+                    "Votre facture est prête pour la tâche : \"" . $taskProposal->getTask()->getTitle() . "\".\n\n" .
+                    "Cliquez ici pour la consulter : " . $finalizedInvoice->hosted_invoice_url
                 );
 
             $mailer->send($email);
             $logger->info("Email envoyé avec succès à " . $user->getEmail());
 
-            $this->addFlash('success', 'Paiement réussi, tâche acceptée et facture envoyée.');
+            $this->addFlash(
+                'success',
+                'Tâche en attente de paiement. Une facture vous a été envoyée par email.'
+            );
 
         } catch (\Exception $e) {
-            $logger->error("Erreur : " . $e->getMessage());
+            $logger->error("Erreur Stripe : " . $e->getMessage());
             $this->addFlash('error', 'Erreur lors de la création de la facture : ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('app_conversations_discussion');
+    }
+
+    #[Route('/stripe/webhook', name: 'stripe_webhook', methods: ['POST'])]
+    public function stripeWebhook(
+        Request $request,
+        LoggerInterface $logger,
+        EntityManagerInterface $em,
+        MailerInterface $mailer
+    ): JsonResponse {
+        $payload     = $request->getContent();
+        $sigHeader   = $request->headers->get('stripe-signature');
+        $endpointSecret = $_ENV['STRIPE_WEBHOOK_SECRET'] ?? null;
+
+        try {
+            $event = Webhook::constructEvent($payload, $sigHeader, $endpointSecret);
+        } catch (\UnexpectedValueException $e) {
+            $logger->error('Invalid payload');
+            return new JsonResponse(['error' => 'Invalid payload'], 400);
+        } catch (\Stripe\Exception\SignatureVerificationException $e) {
+            $logger->error('Invalid signature');
+            return new JsonResponse(['error' => 'Invalid signature'], 400);
+        }
+
+        switch ($event->type) {
+            case 'invoice.payment_succeeded':
+                /** @var \Stripe\Invoice $invoice */
+                $invoice = $event->data->object;
+                $invoiceId = $invoice->id;
+                $customerEmail = $invoice->customer_email;
+
+                $taskProposal = $em->getRepository(TaskProposal::class)->findOneBy(['invoiceId' => $invoiceId]);
+                if ($taskProposal) {
+                    $taskProposal->setStatus('accepted');
+                    $taskProposal->getTask()->setStatus('in_progress');
+                    $em->flush();
+
+                    $logger->info("Paiement confirmé pour la facture: $invoiceId. Email client: $customerEmail");
+
+                    $user = $taskProposal->getTask()->getOwner();
+                    $email = (new Email())
+                        ->from('no-reply@ton-site.com')
+                        ->to($user->getEmail())
+                        ->subject('Paiement confirmé pour votre tâche')
+                        ->text(
+                            "Bonjour,\n\n\"" .
+                            "Votre paiement pour la tâche '\"" . $taskProposal->getTask()->getTitle() . "' est confirmé !\\n\"" .
+                            "Vous pouvez retrouver votre facture ici : \"" . ($invoice->hosted_invoice_url ?? 'Non disponible')
+                        );
+                    $mailer->send($email);
+                    $logger->info("Email de confirmation envoyé à \"" . $user->getEmail());
+                } else {
+                    $logger->error("Aucune proposition de tâche trouvée pour la facture: $invoiceId\"");
+                }
+                break;
+
+            default:
+                $logger->info("Événement Stripe non géré: \"" . $event->type);
+        }
+
+        return new JsonResponse(['status' => 'success']);
     }
 
     #[Route('/message/{id}/refuse', name: 'app_task_refuse', methods: ['POST'])]
