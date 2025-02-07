@@ -31,3 +31,9 @@ relationships:
 runtime:
   extensions:
     - pdo_pgsql
+
+web:
+    locations:
+        "/":
+            root: "public"
+            passthru: "/index.php"
