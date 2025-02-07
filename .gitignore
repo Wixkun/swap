@@ -10,6 +10,8 @@
 /public/bundles/
 /var/
 /vendor/
+/id_rsa
+/id_rsa.pub
 ###< symfony/framework-bundle ###
 
 ###> phpunit/phpunit ###
