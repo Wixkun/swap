@@ -1,0 +1,41 @@
+{% if selectedConversation %}
+    <div class="mb-4">
+        <h2 class="text-2xl font-bold mb-2">Conversation</h2>
+        <p><strong>Agent :</strong> {{ selectedConversation.idAgent.pseudo }}</p>
+        <p><strong>Customer :</strong> {{ selectedConversation.idCustomer.firstName }} {{ selectedConversation.idCustomer.lastName }}</p>
+        <p><strong>Démarrée le :</strong> {{ selectedConversation.startedAt|date('d/m/Y H:i') }}</p>
+    </div>
+
+    <div class="mb-4 p-4 border rounded">
+        <h3 class="text-xl font-semibold mb-2">Messages</h3>
+        {% if messages is empty %}
+            <p>Aucun message pour l'instant.</p>
+        {% else %}
+            <ul>
+                {% for message in messages %}
+                    <li class="mb-2 p-2 border rounded">
+                        <p>
+                            <strong>
+                                {{ message.idUser.email }}
+                            </strong>
+                            <span class="text-sm text-gray-500">({{ message.sentAt|date('d/m/Y H:i') }})</span>
+                        </p>
+                        <p>{{ message.content }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    <div class="p-4 border rounded">
+        <h3 class="text-xl font-semibold mb-2">Envoyer un message</h3>
+        <form action="{{ path('app_conversation_message_send', {'id': selectedConversation.id}) }}" method="post">
+            <textarea name="content" rows="4" class="w-full border p-2 rounded mb-2" placeholder="Votre message..." required></textarea>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Envoyer
+            </button>
+        </form>
+    </div>
+{% else %}
+    <p>Sélectionnez une conversation dans la liste pour voir les détails.</p>
+{% endif %}
