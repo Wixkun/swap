@@ -5,7 +5,19 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}Swap{% endblock %}</title>
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-        <link rel="stylesheet" href="{{ asset('styles.css') }}">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          ubuntu: ['Ubuntu', 'sans-serif'],
+        },
+      },
+    },
+  };
+</script>
+
     </head>
 
     <body class="bg-gray-200">
@@ -76,7 +88,5 @@
         </footer>
 
          {% block javascripts %}{% endblock %}
-
-        <script src="{{ asset('app.js') }}"></script>
     </body>
 </html>

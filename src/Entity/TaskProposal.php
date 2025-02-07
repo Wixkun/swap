@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\TaskProposalRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: TaskProposalRepository::class)]
 class TaskProposal
@@ -30,10 +32,19 @@ class TaskProposal
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Task $task = null;
 
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'taskProposal', cascade: ['remove'])]
+    private Collection $messages;
+
+    public function getMessages(): Collection
+    {
+        return $this->messages;
+    }
+
     public function __construct()
     {
         $this->id = Uuid::v4();
         $this->createdAt = new \DateTimeImmutable();
+        $this->messages = new ArrayCollection();
     }
 
     public function getId(): ?Uuid

@@ -1,34 +1,64 @@
 {% if selectedConversation %}
     <div class="mb-4">
-        <h2 class="text-2xl font-bold mb-2">Conversation</h2>
-        <p><strong>Agent :</strong> {{ selectedConversation.idAgent.pseudo }}</p>
-        <p><strong>Customer :</strong> {{ selectedConversation.idCustomer.firstName }} {{ selectedConversation.idCustomer.lastName }}</p>
         <p><strong>Démarrée le :</strong> {{ selectedConversation.startedAt|date('d/m/Y H:i') }}</p>
     </div>
 
     <div class="mb-4 p-4 border rounded">
-        <h3 class="text-xl font-semibold mb-2">Messages</h3>
         {% if messages is empty %}
             <p>Aucun message pour l'instant.</p>
         {% else %}
             <ul>
-                {% for message in messages %}
-                    <li class="mb-2 p-2 border rounded">
+            {% for message in messages %}
+                {% if message.idUser.email == app.user.email %}
+                    <li class="mb-2 p-2 border rounded bg-blue-100 ml-auto w-fit max-w-[80%] self-end">
+                {% else %}
+                    <li class="mb-2 p-2 border rounded bg-gray-100 mr-auto w-fit max-w-[80%] self-start">
+                {% endif %}
                         <p>
                             <strong>
-                                {{ message.idUser.email }}
+                                {% if 'ROLE_AGENT' in message.idUser.roles %}
+                                    {{ message.idUser.idAgent.pseudo }}
+                                {% else %}
+                                    {{ message.idUser.idCustomer.firstName }} {{ message.idUser.idCustomer.lastName }}
+                                {% endif %}
                             </strong>
                             <span class="text-sm text-gray-500">({{ message.sentAt|date('d/m/Y H:i') }})</span>
                         </p>
-                        <p>{{ message.content }}</p>
+                        {% if message.taskProposal is not null %}
+                            <p>{{ message.content|raw }}</p>
+                        {% else %}
+                            <p>{{ message.content }}</p>
+                        {% endif %}
+                        {% if message.taskProposal is not null and message.taskProposal.status == "pending" and message.taskProposal.task.owner == app.user %}
+                            <div class="mt-2">
+                                <form action="{{ path('app_task_request_payment', {'id': message.taskProposal.id}) }}" method="post" class="inline">
+                                    <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                                        Accepter
+                                    </button>
+                                </form>
+                                <form action="{{ path('app_task_refuse', {'id': message.id}) }}" method="post" class="inline">
+                                    <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+                                        Refuser
+                                    </button>
+                                </form>
+                            </div>
+                        {% endif %}
+                        {% if message.taskProposal is not null and message.taskProposal.status == "waiting_payment" and message.taskProposal.agent.idUser == app.user and message.idUser != app.user %}
+                            <div class="mt-2">
+                                <form action="{{ path('app_task_pay', {'id': message.taskProposal.id}) }}" method="post">
+                                    <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+                                        Payer maintenant
+                                    </button>
+                                </form>
+                            </div>
+                        {% endif %}
                     </li>
-                {% endfor %}
-            </ul>
+            {% endfor %}
+        </ul>
         {% endif %}
     </div>
 
     <div class="p-4 border rounded">
-        <h3 class="text-xl font-semibold mb-2">Envoyer un message</h3>
         <form action="{{ path('app_conversation_message_send', {'id': selectedConversation.id}) }}" method="post">
             <textarea name="content" rows="4" class="w-full border p-2 rounded mb-2" placeholder="Votre message..." required></textarea>
             <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">

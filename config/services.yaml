@@ -6,6 +6,9 @@ services:
     _defaults:
         autowire: true
         autoconfigure: true
+        bind:
+            $stripeSecretKey: '%env(string:STRIPE_SECRET_KEY)%'
+            $stripePublicKey: '%env(string:STRIPE_PUBLIC_KEY)%'
 
     App\:
         resource: '../src/'
