@@ -22,3 +22,7 @@ hooks:
 
 relationships:
   database: "postgresql:postgresql"
+
+runtime:
+  extensions:
+    - pdo_pgsql
