@@ -25,9 +25,6 @@ class Task
 
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'tasks')]
     #[ORM\JoinTable(name: 'task_tag')]
-    // Optionnellement, vous pouvez ajouter:
-        // #[ORM\JoinColumn(onDelete: 'CASCADE')]
-        // #[ORM\InverseJoinColumn(onDelete: 'CASCADE')]
     private Collection $tags;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]

@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Controller\Customer;
-
 use App\Entity\Task;
 use App\Form\TaskType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -11,29 +9,27 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
 #[Route('/customer/task')]
 class TaskController extends AbstractController
 {
     #[Route('/', name: 'app_customer_task_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {
+        // Récupère uniquement les tâches du customer connecté
         $tasks = $entityManager->getRepository(Task::class)->findBy([
             'owner' => $this->getUser(),
         ]);
-
         return $this->render('customer/task/index.html.twig', [
             'tasks' => $tasks,
         ]);
     }
-
+    #[Route('/{id}/edit', name: 'app_customer_task_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Task $task, EntityManagerInterface $entityManager): Response
     {
         if ($task->getOwner() !== $this->getUser()) {
             $this->addFlash('error', 'Vous ne pouvez modifier que vos propres tâches.');
             return $this->redirectToRoute('app_default');
         }
-
         $form = $this->createForm(TaskType::class, $task, [
             'existing_images' => $task->getImagePaths() ?? [],
         ]);
@@ -42,7 +38,6 @@ class TaskController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $task->setUpdatedAt(new \DateTimeImmutable());
 
-            // Vérification avant de récupérer les images à supprimer
             $removeImages = $form->has('removeImages') ? $form->get('removeImages')->getData() : [];
 
             if (!empty($removeImages)) {
@@ -58,15 +53,15 @@ class TaskController extends AbstractController
                 }
                 $task->setImagePaths(array_values($existingPaths));
             }
-
             $this->handleImageUpload($form, $task);
+
             $entityManager->flush();
 
             $this->addFlash('success', 'Tâche mise à jour avec succès !');
             return $this->redirectToRoute('app_default');
         }
 
-        return $this->render('customer/task/edit.html.twig', [
+        return $this->render('admin/task/edit.html.twig', [
             'task' => $task,
             'form' => $form->createView(),
         ]);
@@ -79,13 +74,11 @@ class TaskController extends AbstractController
             $this->addFlash('error', 'Vous ne pouvez supprimer que vos propres tâches.');
             return $this->redirectToRoute('app_default');
         }
-
         if ($this->isCsrfTokenValid('delete' . $task->getId(), $request->request->get('_token'))) {
             $entityManager->remove($task);
             $entityManager->flush();
             $this->addFlash('success', 'Tâche supprimée avec succès.');
         }
-
         return $this->redirectToRoute('app_default');
     }
 
@@ -98,7 +91,7 @@ class TaskController extends AbstractController
             $existingPaths = $task->getImagePaths() ?? [];
 
             foreach ($uploadedFiles as $imageFile) {
-                if ($imageFile instanceof UploadedFile) {
+                if ($imageFile instanceof UploadedFile) { // Vérifie que c'est un fichier
                     $newFilename = uniqid() . '.' . $imageFile->guessExtension();
 
                     try {
