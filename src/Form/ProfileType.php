@@ -1,5 +1,6 @@
 <?php
 // src/Form/ProfileType.php
+
 namespace App\Form;
 
 use Symfony\Component\Form\AbstractType;
@@ -16,12 +17,13 @@ class ProfileType extends AbstractType
     {
         $inputClasses = 'w-64 border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200';
 
-        // Email en lecture seule
+        // Champ email en lecture seule (issu de l'entité User)
         $builder->add('email', TextType::class, [
             'attr'     => ['class' => $inputClasses],
             'disabled' => true,
         ]);
 
+        // Champ pour modifier le mot de passe (non mappé)
         $builder->add('plainPassword', RepeatedType::class, [
             'type'            => PasswordType::class,
             'mapped'          => false,
@@ -37,42 +39,42 @@ class ProfileType extends AbstractType
             ],
         ]);
 
-        $builder
-            ->add('pseudoAgent', TextType::class, [
-                'mapped'   => false,
-                'required' => false,
-                'label'    => 'Pseudo',
-                'attr'     => ['class' => $inputClasses, 'placeholder' => 'Entrez votre pseudo'],
-            ])
-            ->add('phoneAgent', TextType::class, [
-                'mapped'   => false,
-                'required' => false,
-                'label'    => 'Numéro de téléphone',
-                'attr'     => ['class' => $inputClasses, 'placeholder' => 'Entrez votre numéro'],
-            ]);
+        // Champs Agent (non mappés)
+        $builder->add('pseudoAgent', TextType::class, [
+            'mapped'   => false,
+            'required' => false,
+            'label'    => 'Pseudo',
+            'attr'     => ['class' => $inputClasses, 'placeholder' => 'Entrez votre pseudo'],
+        ]);
+        $builder->add('phoneAgent', TextType::class, [
+            'mapped'   => false,
+            'required' => false,
+            'label'    => 'Numéro de téléphone',
+            'attr'     => ['class' => $inputClasses, 'placeholder' => 'Entrez votre numéro de téléphone'],
+        ]);
 
-        $builder
-            ->add('firstNameCustomer', TextType::class, [
-                'mapped'   => false,
-                'required' => false,
-                'label'    => 'Prénom',
-                'attr'     => ['class' => $inputClasses, 'placeholder' => 'Entrez votre prénom'],
-            ])
-            ->add('lastNameCustomer', TextType::class, [
-                'mapped'   => false,
-                'required' => false,
-                'label'    => 'Nom',
-                'attr'     => ['class' => $inputClasses, 'placeholder' => 'Entrez votre nom'],
-            ])
-            ->add('cityCustomer', TextType::class, [
-                'mapped'   => false,
-                'required' => false,
-                'label'    => 'Ville',
-                'attr'     => [
-                    'class'        => "$inputClasses cityCustomer-autocomplete-field",
-                    'autocomplete' => 'off',
-                ],
-            ]);
+        // Champs Customer (non mappés)
+        $builder->add('firstNameCustomer', TextType::class, [
+            'mapped'   => false,
+            'required' => false,
+            'label'    => 'Prénom',
+            'attr'     => ['class' => $inputClasses, 'placeholder' => 'Entrez votre prénom'],
+        ]);
+        $builder->add('lastNameCustomer', TextType::class, [
+            'mapped'   => false,
+            'required' => false,
+            'label'    => 'Nom',
+            'attr'     => ['class' => $inputClasses, 'placeholder' => 'Entrez votre nom'],
+        ]);
+        $builder->add('cityCustomer', TextType::class, [
+            'mapped'   => false,
+            'required' => false,
+            'label'    => 'Ville',
+            'attr'     => [
+                'class'        => $inputClasses . ' cityCustomer-autocomplete-field',
+                'autocomplete' => 'off',
+            ],
+        ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
