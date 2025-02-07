@@ -8,6 +8,7 @@
             <p>Aucun message pour l'instant.</p>
         {% else %}
             <ul>
+            
             {% for message in messages %}
                 {% if message.idUser.email == app.user.email %}
                     <li class="mb-2 p-2 border rounded bg-blue-100 ml-auto w-fit max-w-[80%] self-end">
