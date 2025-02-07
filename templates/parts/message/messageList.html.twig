@@ -44,15 +44,6 @@
                                 </form>
                             </div>
                         {% endif %}
-                        {% if message.taskProposal is not null and message.taskProposal.status == "waiting_payment" and message.taskProposal.agent.idUser == app.user and message.idUser != app.user %}
-                            <div class="mt-2">
-                                <form action="{{ path('app_task_pay', {'id': message.taskProposal.id}) }}" method="post">
-                                    <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-                                        Payer maintenant
-                                    </button>
-                                </form>
-                            </div>
-                        {% endif %}
                     </li>
             {% endfor %}
         </ul>

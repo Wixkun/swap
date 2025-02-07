@@ -85,7 +85,7 @@ class TaskProposalController extends AbstractController
 
         if ($taskProposal->getStatus() !== 'pending') {
             $this->addFlash('error', 'Cette offre ne peut plus être acceptée.');
-            return $this->redirectToRoute('app_conversations');
+            return $this->redirectToRoute('app_conversations_discussion');
         }
 
         $taskProposal->setStatus('waiting_payment');
@@ -104,7 +104,7 @@ class TaskProposalController extends AbstractController
             );
         } catch (\Exception $e) {
             $this->addFlash('error', 'Une erreur est survenue lors de la création du paiement : ' . $e->getMessage());
-            return $this->redirectToRoute('app_conversations');
+            return $this->redirectToRoute('app_conversations_discussion');
         }
 
         return $this->redirect($session->url);
@@ -114,7 +114,7 @@ class TaskProposalController extends AbstractController
     public function paymentCancel(): Response
     {
         $this->addFlash('error', 'Paiement annulé.');
-        return $this->redirectToRoute('app_conversations');
+        return $this->redirectToRoute('app_conversations_discussion');
     }
 
     #[Route('/taskproposal/{id}/payment-success', name: 'app_task_payment_success')]
@@ -128,7 +128,7 @@ class TaskProposalController extends AbstractController
 
         if ($taskProposal->getStatus() !== 'waiting_payment') {
             $this->addFlash('error', 'Ce paiement ne peut être validé que lorsque l\'offre est en attente de paiement.');
-            return $this->redirectToRoute('app_conversations');
+            return $this->redirectToRoute('app_conversations_discussion');
         }
 
         $taskProposal->setStatus('accepted');
@@ -137,7 +137,7 @@ class TaskProposalController extends AbstractController
 
         $this->addFlash('success', 'Paiement réussi et offre acceptée.');
 
-        return $this->redirectToRoute('app_conversations');
+        return $this->redirectToRoute('app_conversations_discussion');
     }
 
     #[Route('/message/{id}/refuse', name: 'app_task_refuse', methods: ['POST'])]
