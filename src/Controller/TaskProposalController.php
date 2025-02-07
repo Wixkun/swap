@@ -13,6 +13,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+
+use Psr\Log\LoggerInterface;
 
 class TaskProposalController extends AbstractController
 {
@@ -118,7 +122,7 @@ class TaskProposalController extends AbstractController
     }
 
     #[Route('/taskproposal/{id}/payment-success', name: 'app_task_payment_success')]
-    public function paymentSuccess(TaskProposal $taskProposal, EntityManagerInterface $em, \Swift_Mailer $mailer): Response
+    public function paymentSuccess(TaskProposal $taskProposal, EntityManagerInterface $em, MailerInterface $mailer, StripeService $stripeService, LoggerInterface $logger): Response
     {
         $user = $this->getUser();
 
@@ -134,47 +138,61 @@ class TaskProposalController extends AbstractController
         $taskProposal->setStatus('accepted');
         $taskProposal->getTask()->setStatus('in_progress');
         $em->flush();
-
-        \Stripe\Stripe::setApiKey($this->getParameter('stripe_secret_key'));
+        $logger->info("Statut de la tâche mis à jour avec succès.");
 
         try {
-            $customer = \Stripe\Customer::create([
+            $stripe = new \Stripe\StripeClient($stripeService->getSecretKey());
+            $logger->info("Connexion à Stripe OK.");
+
+            $customer = $stripe->customers->create([
                 'email' => $user->getEmail(),
                 'name' => $user->getIdCustomer()->getFirstName() . ' ' . $user->getIdCustomer()->getLastName(),
             ]);
+            $logger->info("Client Stripe créé : " . $customer->id);
 
-            \Stripe\InvoiceItem::create([
+            $invoiceItem = $stripe->invoiceItems->create([
                 'customer' => $customer->id,
                 'amount' => $taskProposal->getProposedPrice() * 100, 
                 'currency' => 'eur',
                 'description' => 'Paiement pour la tâche : ' . $taskProposal->getTask()->getTitle(),
             ]);
+            $logger->info("Article ajouté à la facture.");
 
-            $invoice = \Stripe\Invoice::create([
+            $invoice = $stripe->invoices->create([
                 'customer' => $customer->id,
                 'collection_method' => 'send_invoice',
                 'days_until_due' => 7, 
             ]);
+            $logger->info("Facture créée : " . $invoice->id);
 
-            $invoice->finalizeInvoice();
+            $finalizedInvoice = $stripe->invoices->finalizeInvoice($invoice->id);
+            $logger->info("Facture finalisée.");
 
-            $message = (new \Swift_Message('Votre facture est disponible'))
-                ->setFrom('no-reply@ton-site.com')
-                ->setTo($user->getEmail()) 
-                ->setBody(
-                    "Bonjour,\n\nVotre facture pour la tâche \"" . $taskProposal->getTask()->getTitle() . "\" est disponible.\n\nAccédez à votre facture ici : " . $invoice->hosted_invoice_url,
-                    'text/plain'
+            if (!isset($finalizedInvoice->hosted_invoice_url)) {
+                throw new \Exception("L'URL de la facture n'a pas été générée par Stripe.");
+            }
+            $logger->info("URL de la facture Stripe : " . $finalizedInvoice->hosted_invoice_url);
+
+            $email = (new Email())
+                ->from('no-reply@ton-site.com')
+                ->to($user->getEmail())
+                ->subject('Votre facture est disponible')
+                ->text(
+                    "Bonjour,\n\nVotre paiement a été reçu pour la tâche \"" . $taskProposal->getTask()->getTitle() . "\".\n\n"
+                    . "Accédez à votre facture ici : " . $finalizedInvoice->hosted_invoice_url
                 );
 
-            $mailer->send($message);
+            $mailer->send($email);
+            $logger->info("Email envoyé avec succès à " . $user->getEmail());
 
             $this->addFlash('success', 'Paiement réussi, tâche acceptée et facture envoyée.');
 
-            return $this->redirectToRoute('app_conversations');
         } catch (\Exception $e) {
+            $logger->error("Erreur : " . $e->getMessage());
             $this->addFlash('error', 'Erreur lors de la création de la facture : ' . $e->getMessage());
-            return $this->redirectToRoute('app_conversations');
         }
+
+        return $this->redirectToRoute('app_conversations');
     }
 
     #[Route('/message/{id}/refuse', name: 'app_task_refuse', methods: ['POST'])]

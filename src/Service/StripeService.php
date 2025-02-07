@@ -12,6 +12,7 @@ class StripeService
     public function __construct(string $stripeSecretKey, string $stripePublicKey)
     {
         $this->stripe = new StripeClient($stripeSecretKey);
+        $this->stripeSecretKey = $stripeSecretKey;
         $this->stripePublicKey = $stripePublicKey;
     }
 
@@ -36,5 +37,10 @@ class StripeService
     public function getPublicKey(): string
     {
         return $this->stripePublicKey;
+    }
+
+    public function getSecretKey(): string
+    {
+        return $this->stripeSecretKey;
     }
 }

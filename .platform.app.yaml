@@ -32,3 +32,8 @@ relationships:
 runtime:
   extensions:
     - pdo_pgsql
+
+workers:
+    messenger-consumer:
+        commands:
+            - "php bin/console messenger:consume async --no-interaction"
