@@ -14,8 +14,7 @@ web:
   locations:
     "/":
       root: "public"
-      index: ["index.php"]
-
+      passthru: "/index.php"
 hooks:
   deploy: |
     php bin/console doctrine:migrations:migrate --no-interaction
@@ -31,9 +30,3 @@ relationships:
 runtime:
   extensions:
     - pdo_pgsql
-
-web:
-    locations:
-        "/":
-            root: "public"
-            passthru: "/index.php"
