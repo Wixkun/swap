@@ -36,4 +36,4 @@ runtime:
 workers:
     messenger-consumer:
         commands:
-            - "php bin/console messenger:consume async --no-interaction"
+            deploy: "php bin/console messenger:consume async --no-interaction"
