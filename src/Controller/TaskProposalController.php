@@ -118,7 +118,7 @@ class TaskProposalController extends AbstractController
     }
 
     #[Route('/taskproposal/{id}/payment-success', name: 'app_task_payment_success')]
-    public function paymentSuccess(TaskProposal $taskProposal, EntityManagerInterface $em): Response
+    public function paymentSuccess(TaskProposal $taskProposal, EntityManagerInterface $em, \Swift_Mailer $mailer): Response
     {
         $user = $this->getUser();
 
@@ -128,16 +128,53 @@ class TaskProposalController extends AbstractController
 
         if ($taskProposal->getStatus() !== 'waiting_payment') {
             $this->addFlash('error', 'Ce paiement ne peut être validé que lorsque l\'offre est en attente de paiement.');
-            return $this->redirectToRoute('app_conversations_discussion');
+            return $this->redirectToRoute('app_conversations');
         }
 
         $taskProposal->setStatus('accepted');
         $taskProposal->getTask()->setStatus('in_progress');
         $em->flush();
 
-        $this->addFlash('success', 'Paiement réussi et offre acceptée.');
+        \Stripe\Stripe::setApiKey($this->getParameter('stripe_secret_key'));
 
-        return $this->redirectToRoute('app_conversations_discussion');
+        try {
+            $customer = \Stripe\Customer::create([
+                'email' => $user->getEmail(),
+                'name' => $user->getIdCustomer()->getFirstName() . ' ' . $user->getIdCustomer()->getLastName(),
+            ]);
+
+            \Stripe\InvoiceItem::create([
+                'customer' => $customer->id,
+                'amount' => $taskProposal->getProposedPrice() * 100, 
+                'currency' => 'eur',
+                'description' => 'Paiement pour la tâche : ' . $taskProposal->getTask()->getTitle(),
+            ]);
+
+            $invoice = \Stripe\Invoice::create([
+                'customer' => $customer->id,
+                'collection_method' => 'send_invoice',
+                'days_until_due' => 7, 
+            ]);
+
+            $invoice->finalizeInvoice();
+
+            $message = (new \Swift_Message('Votre facture est disponible'))
+                ->setFrom('no-reply@ton-site.com')
+                ->setTo($user->getEmail()) 
+                ->setBody(
+                    "Bonjour,\n\nVotre facture pour la tâche \"" . $taskProposal->getTask()->getTitle() . "\" est disponible.\n\nAccédez à votre facture ici : " . $invoice->hosted_invoice_url,
+                    'text/plain'
+                );
+
+            $mailer->send($message);
+
+            $this->addFlash('success', 'Paiement réussi, tâche acceptée et facture envoyée.');
+
+            return $this->redirectToRoute('app_conversations');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la création de la facture : ' . $e->getMessage());
+            return $this->redirectToRoute('app_conversations');
+        }
     }
 
     #[Route('/message/{id}/refuse', name: 'app_task_refuse', methods: ['POST'])]
