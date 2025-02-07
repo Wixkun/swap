@@ -8,29 +8,43 @@
             <p>Aucun message pour l'instant.</p>
         {% else %}
             <ul>
-            
-            {% for message in messages %}
-                {% if message.idUser.email == app.user.email %}
-                    <li class="mb-2 p-2 border rounded bg-blue-100 ml-auto w-fit max-w-[80%] self-end">
-                {% else %}
-                    <li class="mb-2 p-2 border rounded bg-gray-100 mr-auto w-fit max-w-[80%] self-start">
-                {% endif %}
-                        <p>
-                            <strong>
-                                {% if 'ROLE_AGENT' in message.idUser.roles %}
-                                    {{ message.idUser.idAgent.pseudo }}
-                                {% else %}
-                                    {{ message.idUser.idCustomer.firstName }} {{ message.idUser.idCustomer.lastName }}
-                                {% endif %}
-                            </strong>
-                            <span class="text-sm text-gray-500">({{ message.sentAt|date('d/m/Y H:i') }})</span>
-                        </p>
-                        {% if message.taskProposal is not null %}
-                            <p>{{ message.content|raw }}</p>
-                        {% else %}
-                            <p>{{ message.content }}</p>
-                        {% endif %}
-                        {% if message.taskProposal is not null and message.taskProposal.status == "pending" and message.taskProposal.task.owner == app.user %}
+                {% for message in messages %}
+                    {% if message.idUser.email == app.user.email %}
+                        <li class="mb-2 p-2 border rounded bg-blue-100 ml-auto w-fit max-w-[80%] self-end">
+                    {% else %}
+                        <li class="mb-2 p-2 border rounded bg-gray-100 mr-auto w-fit max-w-[80%] self-start">
+                    {% endif %}
+                    <p>
+                        <strong>
+                            {% if 'ROLE_AGENT' in message.idUser.roles %}
+                                {{ message.idUser.idAgent.pseudo }}
+                            {% else %}
+                                {{ message.idUser.idCustomer.firstName }} {{ message.idUser.idCustomer.lastName }}
+                            {% endif %}
+                        </strong>
+                        <span class="text-sm text-gray-500">({{ message.sentAt|date('d/m/Y H:i') }})</span>
+                    </p>
+
+                    {% if message.taskProposal is not null %}
+                        <p>{{ message.content|raw }}</p>
+                    {% else %}
+                        <p>{{ message.content }}</p>
+                    {% endif %}
+
+                    {# Affichage des images de la tâche associée, si elles existent #}
+                    {% if message.taskProposal is not null and message.taskProposal.task.imagePaths is not empty %}
+                        <div class="flex flex-wrap gap-4 mt-2">
+                            {% for filename in message.taskProposal.task.imagePaths %}
+                                <img src="{{ asset('uploads/tasks/' ~ filename) }}"
+                                     alt="{{ message.taskProposal.task.title }}"
+                                     class="w-1/2 h-auto rounded shadow">
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {# Actions pour le propriétaire de la task (offre liée) #}
+                    {% if message.taskProposal is not null and message.taskProposal.task.owner == app.user %}
+                        {% if message.taskProposal.status == "pending" %}
                             <div class="mt-2">
                                 <form action="{{ path('app_task_accept', {'id': message.taskProposal.id}) }}" method="post" class="inline">
                                     <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
@@ -43,10 +57,48 @@
                                     </button>
                                 </form>
                             </div>
+                        {% elseif message.taskProposal.status == "in_progress" %}
+                            <div x-data="{ showValidationModal: false }" class="mt-2">
+                                <button @click="showValidationModal = true" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                                    Valider la task
+                                </button>
+
+                                <div x-show="showValidationModal" style="display: none;" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+                                    <div class="bg-white p-6 rounded-md shadow-lg max-w-sm w-full">
+                                        <h2 class="text-xl font-bold mb-4">Valider la task</h2>
+                                        <form action="{{ path('app_task_validate', { id: message.taskProposal.id }) }}" method="post">
+                                            <div class="mb-4">
+                                                <label for="rating" class="block text-gray-700 mb-2">Note sur 5</label>
+                                                <select name="rating" id="rating" class="w-full border p-2 rounded" required>
+                                                    <option value="" disabled selected>-- Choisissez une note --</option>
+                                                    <option value="1">1</option>
+                                                    <option value="2">2</option>
+                                                    <option value="3">3</option>
+                                                    <option value="4">4</option>
+                                                    <option value="5">5</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-4">
+                                                <label for="comment" class="block text-gray-700 mb-2">Commentaire</label>
+                                                <textarea name="comment" id="comment" rows="3" class="w-full border p-2 rounded" placeholder="Votre commentaire..."></textarea>
+                                            </div>
+                                            <div class="flex justify-end">
+                                                <button type="button" @click="showValidationModal = false" class="mr-2 px-4 py-2 bg-gray-300 rounded">
+                                                    Annuler
+                                                </button>
+                                                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">
+                                                    Envoyer
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         {% endif %}
+                    {% endif %}
                     </li>
-            {% endfor %}
-        </ul>
+                {% endfor %}
+            </ul>
         {% endif %}
     </div>
 
