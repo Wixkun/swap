@@ -57,7 +57,7 @@
                                     </button>
                                 </form>
                             </div>
-                        {% elseif message.taskProposal.status == "in_progress" %}
+                        {% elseif message.taskProposal.task.status == "in_progress" %}
                             <div x-data="{ showValidationModal: false }" class="mt-2">
                                 <button @click="showValidationModal = true" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
                                     Valider la task
