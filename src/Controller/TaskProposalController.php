@@ -122,6 +122,112 @@ class TaskProposalController extends AbstractController
     }
 
     #[Route('/taskproposal/{id}/payment-success', name: 'app_task_payment_success')]
+    public function paymentSuccess(TaskProposal $taskProposal, EntityManagerInterface $em, MailerInterface $mailer, StripeService $stripeService, LoggerInterface $logger): Response
+    {
+        $user = $this->getUser();
+
+        if (!$taskProposal || $taskProposal->getTask()->getOwner() !== $user) {
+            throw $this->createAccessDeniedException("Vous n'êtes pas autorisé à confirmer ce paiement.");
+        }
+
+        if ($taskProposal->getStatus() !== 'waiting_payment') {
+            $this->addFlash('error', 'Ce paiement ne peut être validé que lorsque l\'offre est en attente de paiement.');
+            return $this->redirectToRoute('app_conversations_discussion');
+        }
+
+        $taskProposal->setStatus('accepted');
+        $taskProposal->getTask()->setStatus('in_progress');
+        $em->flush();
+        $logger->info("Statut de la tâche mis à jour avec succès.");
+
+        try {
+            $stripe = new \Stripe\StripeClient($stripeService->getSecretKey());
+            $logger->info("Connexion à Stripe OK.");
+
+            $customer = $stripe->customers->create([
+                'email' => $user->getEmail(),
+                'name' => $user->getIdCustomer()->getFirstName() . ' ' . $user->getIdCustomer()->getLastName(),
+            ]);
+            $logger->info("Client Stripe créé : " . $customer->id);
+
+            $invoiceItem = $stripe->invoiceItems->create([
+                'customer' => $customer->id,
+                'amount' => $taskProposal->getProposedPrice() * 100, 
+                'currency' => 'eur',
+                'description' => 'Paiement pour la tâche : ' . $taskProposal->getTask()->getTitle(),
+            ]);
+            $logger->info("Article ajouté à la facture.");
+
+            $invoice = $stripe->invoices->create([
+                'customer' => $customer->id,
+                'collection_method' => 'send_invoice',
+                'days_until_due' => 7, 
+            ]);
+            $logger->info("Facture créée : " . $invoice->id);
+
+            $finalizedInvoice = $stripe->invoices->finalizeInvoice($invoice->id);
+            $logger->info("Facture finalisée.");
+
+            if (!isset($finalizedInvoice->hosted_invoice_url)) {
+                throw new \Exception("L'URL de la facture n'a pas été générée par Stripe.");
+            }
+            $logger->info("URL de la facture Stripe : " . $finalizedInvoice->hosted_invoice_url);
+
+            $email = (new Email())
+                ->from('no-reply@ton-site.com')
+                ->to($user->getEmail())
+                ->subject('Votre facture est disponible')
+                ->text(
+                    "Bonjour,\n\nVotre paiement a été reçu pour la tâche \"" . $taskProposal->getTask()->getTitle() . "\".\n\n"
+                    . "Accédez à votre facture ici : " . $finalizedInvoice->hosted_invoice_url
+                );
+
+            $mailer->send($email);
+            $logger->info("Email envoyé avec succès à " . $user->getEmail());
+
+            $this->addFlash('success', 'Paiement réussi, tâche acceptée et facture envoyée.');
+
+        } catch (\Exception $e) {
+            $logger->error("Erreur : " . $e->getMessage());
+            $this->addFlash('error', 'Erreur lors de la création de la facture : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_conversations_discussion');
+    }
+
+    #[Route('/message/{id}/refuse', name: 'app_task_refuse', methods: ['POST'])]
+    public function refuseOffer(Message $message, EntityManagerInterface $em): Response
+    {
+        $user = $this->getUser();
+
+        $taskProposal = $message->getTaskProposal();
+
+        if (!$taskProposal) {
+            throw $this->createNotFoundException("Aucune offre trouvée pour ce message.");
+        }
+
+        if ($taskProposal->getTask()->getOwner() !== $user) {
+            throw $this->createAccessDeniedException("Vous n'êtes pas autorisé à refuser cette offre.");
+        }
+
+        $conversation = $message->getIdConversation();
+
+        $taskProposal->setStatus('refused');
+        $em->flush();
+
+        $this->addFlash('error', 'Offre refusée.');
+
+        return $this->redirectToRoute('app_conversations_discussion', ['id' => $conversation?->getId()]);
+    }
+}
+
+/* web hooks
+use Stripe\Webhook;
+use Stripe\StripeClient;
+
+class PaymentController extends AbstractController
+{
+    #[Route('/taskproposal/{id}/payment-success', name: 'app_task_payment_success')]
     public function paymentSuccess(
         TaskProposal $taskProposal,
         EntityManagerInterface $em,
@@ -177,6 +283,9 @@ class TaskProposalController extends AbstractController
                 throw new \Exception("L'URL de la facture n'a pas été générée par Stripe.");
             }
 
+            $taskProposal->setInvoiceId($finalizedInvoice->id);
+            $em->flush();
+
             $logger->info("URL de la facture Stripe : " . $finalizedInvoice->hosted_invoice_url);
 
             $email = (new Email())
@@ -228,7 +337,7 @@ class TaskProposalController extends AbstractController
 
         switch ($event->type) {
             case 'invoice.payment_succeeded':
-                /** @var \Stripe\Invoice $invoice */
+                /** @var \Stripe\Invoice $invoice *//*
                 $invoice = $event->data->object;
                 $invoiceId = $invoice->id;
                 $customerEmail = $invoice->customer_email;
@@ -249,7 +358,7 @@ class TaskProposalController extends AbstractController
                         ->text(
                             "Bonjour,\n\n\"" .
                             "Votre paiement pour la tâche '\"" . $taskProposal->getTask()->getTitle() . "' est confirmé !\\n\"" .
-                            "Vous pouvez retrouver votre facture ici : \"" . ($invoice->hosted_invoice_url ?? 'Non disponible')
+                            "Vous pouvez retrouver votre facture ici : " . ($invoice->hosted_invoice_url ?? 'Non disponible')
                         );
                     $mailer->send($email);
                     $logger->info("Email de confirmation envoyé à \"" . $user->getEmail());
@@ -258,35 +367,12 @@ class TaskProposalController extends AbstractController
                 }
                 break;
 
+
             default:
                 $logger->info("Événement Stripe non géré: \"" . $event->type);
         }
 
         return new JsonResponse(['status' => 'success']);
     }
-
-    #[Route('/message/{id}/refuse', name: 'app_task_refuse', methods: ['POST'])]
-    public function refuseOffer(Message $message, EntityManagerInterface $em): Response
-    {
-        $user = $this->getUser();
-
-        $taskProposal = $message->getTaskProposal();
-
-        if (!$taskProposal) {
-            throw $this->createNotFoundException("Aucune offre trouvée pour ce message.");
-        }
-
-        if ($taskProposal->getTask()->getOwner() !== $user) {
-            throw $this->createAccessDeniedException("Vous n'êtes pas autorisé à refuser cette offre.");
-        }
-
-        $conversation = $message->getIdConversation();
-
-        $taskProposal->setStatus('refused');
-        $em->flush();
-
-        $this->addFlash('error', 'Offre refusée.');
-
-        return $this->redirectToRoute('app_conversations_discussion', ['id' => $conversation?->getId()]);
-    }
 }
+*/
