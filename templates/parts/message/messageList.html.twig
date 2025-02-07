@@ -13,14 +13,18 @@
         {% else %}
             <ul>
                 {% for message in messages %}
-                    <li class="mb-2 p-2 border rounded">
-                        <p>
-                            <strong>
-                                {{ message.idUser.email }}
-                            </strong>
-                            <span class="text-sm text-gray-500">({{ message.sentAt|date('d/m/Y H:i') }})</span>
-                        </p>
-                        <p>{{ message.content }}</p>
+                    {% if message.idUser.email == app.user.email %}
+                        <li class="mb-2 p-2 border rounded bg-blue-100 ml-auto w-fit max-w-4/5 self-end">
+                    {% else %}
+                        <li class="mb-2 p-2 border rounded bg-gray-100 mr-auto w-fit max-w-4/5 self-start">
+                    {% endif %}
+                    <p>
+                        <strong>
+                            {{ message.idUser.email }}
+                        </strong>
+                        <span class="text-sm text-gray-500">({{ message.sentAt|date('d/m/Y H:i') }})</span>
+                    </p>
+                    <p>{{ message.content }}</p>
                     </li>
                 {% endfor %}
             </ul>

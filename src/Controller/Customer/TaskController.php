@@ -58,7 +58,9 @@ class TaskController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Tâche mise à jour avec succès !');
-            return $this->redirectToRoute('app_default');
+            $redirectRoute = $request->query->get('redirect') === 'profil' ? 'app_profil' : 'app_default';
+
+            return $this->redirectToRoute($redirectRoute);
         }
 
         return $this->render('admin/task/edit.html.twig', [
@@ -79,7 +81,9 @@ class TaskController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'Tâche supprimée avec succès.');
         }
-        return $this->redirectToRoute('app_default');
+        $redirectRoute = $request->query->get('redirect') === 'profil' ? 'app_profil' : 'app_default';
+
+        return $this->redirectToRoute($redirectRoute);
     }
 
     private function handleImageUpload($form, Task $task): void
