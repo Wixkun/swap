@@ -116,28 +116,39 @@ class TaskProposalController extends AbstractController
     }  
 
     #[Route('/taskproposal/{id}/pay', name: 'app_task_pay', methods: ['POST'])]
-    public function pay(TaskProposal $taskProposal, StripeService $stripeService, EntityManagerInterface $em): Response
-    {
-        $user = $this->getUser();
-    
-        if (!$taskProposal || $taskProposal->getAgent()->getIdUser() !== $user) {
-            throw $this->createAccessDeniedException("Vous n'êtes pas autorisé à payer cette offre.");
-        }
-    
-        if ($taskProposal->getStatus() !== 'waiting_payment') {
-            $this->addFlash('error', 'Le paiement ne peut être effectué que lorsque l\'offre est en attente de paiement.');
-            return $this->redirectToRoute('app_conversations_discussion', ['id' => $conversation->getId()]);
-        }
-    
+public function pay(TaskProposal $taskProposal, StripeService $stripeService, EntityManagerInterface $em): Response
+{
+    $user = $this->getUser();
+
+    if (!$taskProposal || $taskProposal->getAgent()->getIdUser() !== $user) {
+        throw $this->createAccessDeniedException("Vous n'êtes pas autorisé à payer cette offre.");
+    }
+
+    if ($taskProposal->getStatus() !== 'waiting_payment') {
+        $this->addFlash('error', 'Le paiement ne peut être effectué que lorsque l\'offre est en attente de paiement.');
+        return $this->redirectToRoute('app_conversations');
+    }
+
+    $baseUrl = $this->getParameter('base_url');
+
+    $successUrl = $baseUrl . $this->generateUrl('app_task_payment_success', ['id' => $taskProposal->getId()]);
+    $cancelUrl = $baseUrl . $this->generateUrl('app_task_payment_cancel');
+
+    try {
         $session = $stripeService->createCheckoutSession(
             $taskProposal->getProposedPrice(),
             'eur',
-            $this->generateUrl('app_task_payment_success', ['id' => $taskProposal->getId()], true),
-            $this->generateUrl('app_task_payment_cancel', [], true)
+            $successUrl,
+            $cancelUrl
         );
-    
-        return $this->redirect($session->url);
+    } catch (\Exception $e) {
+        $this->addFlash('error', 'Une erreur est survenue lors de la création du paiement : ' . $e->getMessage());
+        return $this->redirectToRoute('app_conversations');
     }
+
+    return $this->redirect($session->url);
+}
+
 
     #[Route('/taskproposal/payment-cancel', name: 'app_task_payment_cancel')]
     public function paymentCancel(): Response
