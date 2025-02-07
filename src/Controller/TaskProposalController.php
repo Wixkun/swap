@@ -121,6 +121,7 @@ class TaskProposalController extends AbstractController
         return $this->redirectToRoute('app_conversations_discussion');
     }
 
+    #[Route('/taskproposal/{id}/payment-success', name: 'app_task_payment_success')]
     public function paymentSuccess(
         TaskProposal $taskProposal,
         EntityManagerInterface $em,
@@ -130,14 +131,12 @@ class TaskProposalController extends AbstractController
     ): Response {
         $user = $this->getUser();
 
-        // Vérification de la légitimité de l'utilisateur
         if (!$taskProposal || $taskProposal->getTask()->getOwner() !== $user) {
             throw $this->createAccessDeniedException(
                 "Vous n'êtes pas autorisé à confirmer ce paiement."
             );
         }
 
-        // Vérification du statut
         if ($taskProposal->getStatus() !== 'waiting_payment') {
             $this->addFlash(
                 'error',
