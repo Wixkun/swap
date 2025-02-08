@@ -1,4 +1,4 @@
-{% if selectedConversation %}
+ {% if selectedConversation %}
     <div class="mb-4">
         <p><strong>Démarrée le :</strong> {{ selectedConversation.startedAt|date('d/m/Y H:i') }}</p>
     </div>
@@ -31,7 +31,6 @@
                         <p>{{ message.content }}</p>
                     {% endif %}
 
-                    {# Affichage des images de la tâche associée, si elles existent #}
                     {% if message.taskProposal is not null and message.taskProposal.task.imagePaths is not empty %}
                         <div class="flex flex-wrap gap-4 mt-2">
                             {% for filename in message.taskProposal.task.imagePaths %}
@@ -42,9 +41,8 @@
                         </div>
                     {% endif %}
 
-                    {# Actions pour le propriétaire de la task (offre liée) #}
                     {% if message.taskProposal is not null and message.taskProposal.task.owner == app.user %}
-                        {% if message.taskProposal.status == "pending" %}
+                        {% if message.taskProposal.status == "pending" and message.taskProposal.task.status != "in_progress" %}
                             <div class="mt-2">
                                 <form action="{{ path('app_task_accept', {'id': message.taskProposal.id}) }}" method="post" class="inline">
                                     <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
@@ -57,7 +55,7 @@
                                     </button>
                                 </form>
                             </div>
-                        {% elseif message.taskProposal.task.status == "in_progress" %}
+                        {% elseif message.taskProposal.task.status == "in_progress" and message.taskProposal.status == "accepted" %}
                             <div x-data="{ showValidationModal: false }" class="mt-2">
                                 <button @click="showValidationModal = true" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
                                     Valider la task

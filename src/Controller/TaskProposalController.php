@@ -92,7 +92,10 @@ class TaskProposalController extends AbstractController
             return $this->redirectToRoute('app_conversations_discussion');
         }
 
+        $task = $taskProposal->getTask();
+
         $taskProposal->setStatus('waiting_payment');
+        $task->setStatus('waiting_payment');
         $em->flush();
 
         $baseUrl = $this->getParameter('base_url');

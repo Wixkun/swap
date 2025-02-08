@@ -4,6 +4,7 @@
 namespace App\Controller;
 
 use App\Entity\Review;
+use App\Entity\Agent;
 use App\Entity\TaskProposal;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -44,7 +45,26 @@ class ReviewController extends AbstractController
         $em->persist($review);
         $em->flush();
 
+        $agent = $taskProposal->getAgent(); 
+        $this->updateAgentRating($agent, $em); 
+        
         $this->addFlash('success', 'La task a été validée et l\'agent noté.');
         return $this->redirectToRoute('app_default');
+    }
+
+    private function updateAgentRating(Agent $agent, EntityManagerInterface $entityManager): void
+    {
+     $reviews = $entityManager->getRepository(Review::class)->findBy(['idAgent' => $agent]);
+
+     if (count($reviews) > 0) {
+         $totalRating = array_reduce($reviews, fn($sum, $review) => $sum + $review->getRating(), 0);
+         $averageRating = $totalRating / count($reviews);
+         $agent->setRatingGlobal(round($averageRating, 1));
+     } else {
+         $agent->setRatingGlobal(null);
+     }
+
+     $entityManager->persist($agent);
+     $entityManager->flush();
     }
 }

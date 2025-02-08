@@ -15,7 +15,6 @@ class TaskController extends AbstractController
     #[Route('/', name: 'app_customer_task_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        // Récupère uniquement les tâches du customer connecté
         $tasks = $entityManager->getRepository(Task::class)->findBy([
             'owner' => $this->getUser(),
         ]);

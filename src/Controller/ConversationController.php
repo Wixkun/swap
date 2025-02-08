@@ -1,5 +1,4 @@
 <?php
-// src/Controller/ConversationController.php
 namespace App\Controller;
 
 use App\Entity\Conversation;
