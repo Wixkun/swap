@@ -17,13 +17,11 @@ class ProfileType extends AbstractType
     {
         $inputClasses = 'w-64 border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200';
 
-        // Champ email en lecture seule (issu de l'entité User)
         $builder->add('email', TextType::class, [
             'attr'     => ['class' => $inputClasses],
             'disabled' => true,
         ]);
 
-        // Champ pour modifier le mot de passe (non mappé)
         $builder->add('plainPassword', RepeatedType::class, [
             'type'            => PasswordType::class,
             'mapped'          => false,
@@ -39,7 +37,6 @@ class ProfileType extends AbstractType
             ],
         ]);
 
-        // Champs Agent (non mappés)
         $builder->add('pseudoAgent', TextType::class, [
             'mapped'   => false,
             'required' => false,
@@ -53,7 +50,6 @@ class ProfileType extends AbstractType
             'attr'     => ['class' => $inputClasses, 'placeholder' => 'Entrez votre numéro de téléphone'],
         ]);
 
-        // Champs Customer (non mappés)
         $builder->add('firstNameCustomer', TextType::class, [
             'mapped'   => false,
             'required' => false,

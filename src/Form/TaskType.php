@@ -76,7 +76,6 @@ class TaskType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Task::class,
-            // Par défaut, aucune image existante n'est transmise (utile pour le formulaire "new")
             'existing_images' => [],
         ]);
     }

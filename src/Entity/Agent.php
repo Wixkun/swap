@@ -11,6 +11,7 @@ use Doctrine\Common\Collections\Collection;
 #[ORM\Entity(repositoryClass: AgentRepository::class)]
 class Agent
 {
+    #[Groups('agent:read')]
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
     private ?Uuid $id = null;
@@ -18,12 +19,15 @@ class Agent
     #[ORM\OneToMany(targetEntity: TaskProposal::class, mappedBy: 'agent', cascade: ['remove'], orphanRemoval: true)]
     private Collection $taskProposals;
 
+    #[Groups('agent:read')]
     #[ORM\Column(length: 100)]
     private ?string $pseudo = null;
 
+    #[Groups('agent:read')]
     #[ORM\Column(length: 20)]
     private ?string $phoneNumber = null;
 
+    #[Groups('agent:read')]
     #[ORM\Column(nullable: true)]
     private ?float $ratingGlobal = null;
 
