@@ -5,7 +5,7 @@ namespace App\Serializer;
 use App\Entity\Agent;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
 
-class AgentDenormalizer implements ContextAwareDenormalizerInterface
+class AgentSerializer implements ContextAwareDenormalizerInterface
 {
     public function denormalize(mixed $data, string $type, string $format = null, array $context = []): mixed
     {
