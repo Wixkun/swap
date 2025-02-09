@@ -1,5 +1,4 @@
 <?php
-// src/Controller/ReviewController.php
 
 namespace App\Controller;
 
@@ -40,7 +39,8 @@ class ReviewController extends AbstractController
         $review->setCreatedAt(new \DateTimeImmutable());
         $review->setIdAgent($taskProposal->getAgent());
 
-        $taskProposal->setStatus('done');
+        $task = $taskProposal->getTask();
+        $task->setStatus('done');
 
         $em->persist($review);
         $em->flush();

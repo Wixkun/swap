@@ -1,4 +1,5 @@
 <?php
+// src/DataFixtures/AppFixtures.php
 
 namespace App\DataFixtures;
 
@@ -48,10 +49,8 @@ class AppFixtures extends Fixture
         $customer->setFirstName($faker->firstName);
         $customer->setLastName($faker->lastName);
         $customer->setCity($faker->city);
-
         $customer->setIdUser($customerUser);
         $customerUser->setIdCustomer($customer);
-
         $manager->persist($customer);
         $manager->persist($customerUser);
 
@@ -65,10 +64,8 @@ class AppFixtures extends Fixture
         $agent->setPseudo($faker->userName);
         $agent->setPhoneNumber($faker->phoneNumber);
         $agent->setRatingGlobal($faker->randomFloat(2, 0, 5));
-
         $agent->setIdUser($agentUser);
         $agentUser->setIdAgent($agent);
-
         $manager->persist($agent);
         $manager->persist($agentUser);
 
@@ -82,35 +79,27 @@ class AppFixtures extends Fixture
             $user->setPassword(
                 $this->passwordHasher->hashPassword($user, 'password')
             );
-
             if ($i < 5) {
                 $user->setRoles(['ROLE_CUSTOMER']);
-
                 $cust = new Customer();
                 $cust->setFirstName($faker->firstName);
                 $cust->setLastName($faker->lastName);
                 $cust->setCity($faker->city);
-
                 $cust->setIdUser($user);
                 $user->setIdCustomer($cust);
-
                 $manager->persist($cust);
                 $genericCustomers[] = $cust;
             } else {
                 $user->setRoles(['ROLE_AGENT']);
-
                 $ag = new Agent();
                 $ag->setPseudo($faker->userName);
                 $ag->setPhoneNumber($faker->phoneNumber);
                 $ag->setRatingGlobal($faker->randomFloat(2, 0, 5));
-
                 $ag->setIdUser($user);
                 $user->setIdAgent($ag);
-
                 $manager->persist($ag);
                 $genericAgents[] = $ag;
             }
-
             $manager->persist($user);
             $genericUsers[] = $user;
         }
@@ -128,18 +117,16 @@ class AppFixtures extends Fixture
             $skill = new Skill();
             $skill->setName($data['name']);
             $skill->setDescription($data['description']);
-
             $manager->persist($skill);
             $skills[] = $skill;
         }
 
         $allAgents = array_merge([$agent], $genericAgents);
-
         foreach ($allAgents as $agentObj) {
             $nbSkills = rand(1, 3);
             $selectedSkills = $faker->randomElements($skills, $nbSkills);
             foreach ($selectedSkills as $skill) {
-                $skill->addIdAgent($agentObj);
+                $skill->addAgent($agentObj);
             }
         }
 
@@ -152,59 +139,55 @@ class AppFixtures extends Fixture
             $tags[] = $tag;
         }
 
-    $possibleTasks = [
-        [
-            'title'       => 'Résoudre une bagarre devant le bar local',
-            'description' => 'Besoin d’un agent pour calmer la situation et éviter les débordements.'
-        ],
-        [
-            'title'       => 'Gérer la rupture d’un couple en litige',
-            'description' => 'Cherche médiateur pour gérer documents, discussions, et partager les biens.'
-        ],
-        [
-            'title'       => 'Organisation d’une file d’attente pour la billetterie',
-            'description' => 'Nécessite un professionnel pour mettre en place des barrières et gérer le flux de personnes.'
-        ],
-        [
-            'title'       => 'Accompagnement à la démission d’un employé',
-            'description' => 'Besoin de conseils pour rédiger les courriers et faire respecter les délais légaux.'
-        ],
-        [
-            'title'       => 'Sécuriser une manifestation pacifique',
-            'description' => 'Besoin d’une équipe pour superviser le cortège et éviter les débordements.'
-        ],
-    ];
+        $possibleTasks = [
+            [
+                'title'       => 'Résoudre une bagarre devant le bar local',
+                'description' => 'Besoin d’un agent pour calmer la situation et éviter les débordements.'
+            ],
+            [
+                'title'       => 'Gérer la rupture d’un couple en litige',
+                'description' => 'Cherche médiateur pour gérer documents, discussions, et partager les biens.'
+            ],
+            [
+                'title'       => 'Organisation d’une file d’attente pour la billetterie',
+                'description' => 'Nécessite un professionnel pour mettre en place des barrières et gérer le flux de personnes.'
+            ],
+            [
+                'title'       => 'Accompagnement à la démission d’un employé',
+                'description' => 'Besoin de conseils pour rédiger les courriers et faire respecter les délais légaux.'
+            ],
+            [
+                'title'       => 'Sécuriser une manifestation pacifique',
+                'description' => 'Besoin d’une équipe pour superviser le cortège et éviter les débordements.'
+            ],
+        ];
 
-    $allCustomers = array_merge([$customer], $genericCustomers);
+        $allCustomers = array_merge([$customer], $genericCustomers);
+        $tasks = [];
+        foreach ($possibleTasks as $taskData) {
+            $randomOwner = $faker->randomElement($allCustomers);
+            $task = new Task();
+            $task->setTitle($taskData['title']);
+            $task->setDescription($taskData['description']);
+            $task->setImagePaths([]);
+            $task->setStatus('pending');
+            $task->setOwner($randomOwner->getIdUser());
+            $task->addTag($faker->randomElement($tags));
+            $task->setUpdatedAt(new \DateTime());
+            $manager->persist($task);
+            $tasks[] = $task;
+        }
 
-    $tasks = [];
-    foreach ($possibleTasks as $taskData) {
-        $randomOwner = $faker->randomElement($allCustomers);
+        foreach ($tasks as $task) {
+            $proposal = new TaskProposal();
+            $proposal->setTask($task);
+            $proposal->setAgent($faker->randomElement($allAgents));
+            $proposal->setProposedPrice($faker->randomFloat(2, 50, 500));
+            $proposal->setStatus('pending');
+            $manager->persist($proposal);
+        }
 
-        $task = new Task();
-        $task->setTitle($taskData['title']);
-        $task->setDescription($taskData['description']);
-        $task->setImagePaths([]);
-        $task->setStatus('pending');
-        $task->setOwner($randomOwner->getIdUser());
-        $task->addTag($faker->randomElement($tags));
-        $task->setUpdatedAt(new \DateTime());
-
-        $manager->persist($task);
-        $tasks[] = $task;
-    }
-
-    foreach ($tasks as $task) {
-        $proposal = new TaskProposal();
-        $proposal->setTask($task);
-        $proposal->setAgent($faker->randomElement($allAgents));
-        $proposal->setProposedPrice($faker->randomFloat(2, 50, 500));
-        $proposal->setStatus('pending');
-
-        $manager->persist($proposal);
-    }
-
-    $manager->flush();
+        $manager->flush();
 
         $conversations = [];
         foreach ($allCustomers as $cust) {
@@ -222,7 +205,6 @@ class AppFixtures extends Fixture
                 $message->setContent($faker->sentence);
                 $message->setSentAt(new \DateTimeImmutable());
                 $message->setIdConversation($conv);
-
                 if ($i % 2 === 0) {
                     $message->setIdUser($conv->getIdCustomer()->getIdUser());
                 } else {

@@ -27,7 +27,6 @@ class AgentRegistrationController extends AbstractController
                 $form->get('password')->getData()
             );
             $user->setPassword($hashedPassword);
-
             $user->setRoles(['ROLE_AGENT']);
 
             $entityManager->persist($user);
@@ -40,6 +39,11 @@ class AgentRegistrationController extends AbstractController
             $agent->setPseudo($pseudo);
             $agent->setPhoneNumber($phoneNumber);
             $agent->setIdUser($user);
+
+            $selectedSkills = $form->get('skills')->getData();
+            foreach ($selectedSkills as $skill) {
+                $agent->addSkill($skill);
+            }
 
             $entityManager->persist($agent);
             $entityManager->flush();

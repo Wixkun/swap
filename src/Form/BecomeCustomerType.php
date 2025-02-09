@@ -1,5 +1,4 @@
 <?php
-// src/Form/BecomeCustomerType.php
 
 namespace App\Form;
 
@@ -24,7 +23,6 @@ class BecomeCustomerType extends AbstractType
             ])
             ->add('city', TextType::class, [
                 'label' => 'Ville',
-                'mapped' => false,
                 'attr' => [
                     'class' => 'city-autocomplete-field',
                     'autocomplete' => 'off',

@@ -18,7 +18,7 @@
                         <strong>
                             {% if 'ROLE_AGENT' in message.idUser.roles %}
                                 {{ message.idUser.idAgent.pseudo }}
-                            {% else %}
+                            {% elseif 'ROLE_CUSTOMER' in message.idUser.roles %}
                                 {{ message.idUser.idCustomer.firstName }} {{ message.idUser.idCustomer.lastName }}
                             {% endif %}
                         </strong>

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controller;
 
 use App\Entity\Conversation;
@@ -23,7 +24,15 @@ class ConversationController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        if ($user->getIdCustomer()) {
+        if ($user->getIdCustomer() && $user->getIdAgent()) {
+            $customerConversations = $conversationRepository->findBy([
+                'idCustomer' => $user->getIdCustomer()
+            ]);
+            $agentConversations = $conversationRepository->findBy([
+                'idAgent' => $user->getIdAgent()
+            ]);
+            $conversations = array_unique(array_merge($customerConversations, $agentConversations));
+        } elseif ($user->getIdCustomer()) {
             $conversations = $conversationRepository->findBy([
                 'idCustomer' => $user->getIdCustomer()
             ]);
@@ -95,7 +104,6 @@ class ConversationController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'Message envoyé.');
-
         return $this->redirectToRoute('app_conversations_discussion', ['conv' => $conversation->getId()]);
     }
 }
