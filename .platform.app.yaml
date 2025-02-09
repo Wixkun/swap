@@ -5,10 +5,10 @@ type: php:8.2
 disk: 1024
 
 mounts:
-  "/app/var": "shared:files"
-  "public/uploads":
-      source: "storage"
-      source_path: "uploads"
+    "/app/public/uploads": 
+        source: local
+        source_path: uploads
+    "/app/var": "shared:files"
 
 build:
   flavor: composer
