@@ -55,7 +55,7 @@ class AppFixtures extends Fixture
         $manager->persist($customerUser);
 
         $agentUser = new User();
-        $agentUser->setEmail('agent@agent.agent');
+        $agentUser->setEmail('agent@gmail.com');
         $agentUser->setRoles(['ROLE_AGENT']);
         $agentUser->setPassword(
             $this->passwordHasher->hashPassword($agentUser, 'agent12345678')
