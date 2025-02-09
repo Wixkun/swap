@@ -1,4 +1,3 @@
-# .platform.app.yaml
 name: app
 type: php:8.2
 
