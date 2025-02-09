@@ -1,5 +1,5 @@
 parameters:
-    uploads_directory: '%kernel.project_dir%/public/uploads/tasks'
+    uploads_directory: '/mnt/uploads/tasks'
     locale: 'fr'
     base_url: 'https://main-bvxea6i-zkvc3qbnbenee.fr-3.platformsh.site'
 
