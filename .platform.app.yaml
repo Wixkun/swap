@@ -26,13 +26,10 @@ web:
 
 hooks:
   deploy: |
-    php bin/console doctrine:schema:drop --force
-    php bin/console doctrine:migrations:sync-metadata-storage
-    php bin/console doctrine:migrations:version --add --all
     php bin/console doctrine:migrations:migrate --no-interaction
+    php bin/console doctrine:schema:validate
   post_deploy: |
-    php bin/console doctrine:fixtures:load --no-interaction
-
+    php bin/console doctrine:fixtures:load --no-interaction 
 
 variables:
   env:
