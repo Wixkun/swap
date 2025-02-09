@@ -21,7 +21,7 @@ web:
       root: "public"
       passthru: "/index.php"
     "/uploads":
-      root: "/mnt/uploads/tasks"
+      root: "mnt/uploads/tasks"
       allow: true
 
 hooks:
