@@ -9,7 +9,6 @@ mounts:
   "public/uploads":
       source: "storage"
       source_path: "uploads"
-      writable: true
 
 build:
   flavor: composer
