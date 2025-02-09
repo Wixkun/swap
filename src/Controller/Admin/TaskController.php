@@ -130,7 +130,7 @@ final class TaskController extends AbstractController
             $existingPaths = $task->getImagePaths() ?? [];
 
             foreach ($uploadedFiles as $imageFile) {
-                if ($imageFile instanceof UploadedFile) { // Vérifie que c'est un fichier
+                if ($imageFile instanceof UploadedFile) {
                     $newFilename = uniqid() . '.' . $imageFile->guessExtension();
 
                     try {

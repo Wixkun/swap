@@ -23,6 +23,12 @@ class TaskProposalController extends AbstractController
     #[Route('/offer/make/{id}', name: 'app_make_offer', methods: ['POST'])]
     public function makeOffer(Request $request, Task $task, EntityManagerInterface $em, ConversationRepository $conversationRepository): Response
     {
+        $proposedPrice = $request->request->get('proposedPrice');
+        if ($proposedPrice > 999999) {
+            $this->addFlash('error', 'Le prix proposé ne peut pas dépasser 999 999 €.');
+            return $this->redirectToRoute('app_default');
+        }
+
         $this->denyAccessUnlessGranted('ROLE_AGENT');
 
         $proposedPrice = $request->request->get('proposedPrice');

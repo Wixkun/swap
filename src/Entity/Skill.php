@@ -1,11 +1,11 @@
 <?php
 
+
 namespace App\Entity;
 
 use App\Repository\SkillRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -23,17 +23,13 @@ class Skill
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $description = null;
 
-    /**
-     * @var Collection<int, Agent>
-     */
-    #[ORM\ManyToMany(targetEntity: Agent::class)]
-    private Collection $idAgent;
+    #[ORM\ManyToMany(targetEntity: \App\Entity\Agent::class, mappedBy: 'skills')]
+    private Collection $agents;
 
     public function __construct()
     {
-        $this->idAgent = new ArrayCollection();
-
-        $this->id = Uuid::v4(); 
+        $this->id = Uuid::v4();
+        $this->agents = new ArrayCollection();
     }
 
     public function getId(): ?Uuid
@@ -41,26 +37,14 @@ class Skill
         return $this->id;
     }
 
-    public function getIdSkill(): ?string
-    {
-        return $this->idSkill;
-    }
-
-    public function setIdSkill(string $idSkill): static
-    {
-        $this->idSkill = $idSkill;
-        return $this;
-    }
-
     public function getName(): ?string
     {
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(string $name): self
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -69,32 +53,31 @@ class Skill
         return $this->description;
     }
 
-    public function setDescription(?string $description): static
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
-
         return $this;
     }
 
     /**
-     * @return Collection<int, Agent>
+     * @return Collection<int, \App\Entity\Agent>
      */
-    public function getIdAgent(): Collection
+    public function getAgents(): Collection
     {
-        return $this->idAgent;
+        return $this->agents;
     }
 
-    public function addIdAgent(Agent $idAgent): static
+    public function addAgent(Agent $agent): self
     {
-        if (!$this->idAgent->contains($idAgent)) {
-            $this->idAgent->add($idAgent);
+        if (!$this->agents->contains($agent)) {
+            $this->agents->add($agent);
         }
         return $this;
     }
 
-    public function removeIdAgent(Agent $idAgent): static
+    public function removeAgent(Agent $agent): self
     {
-        $this->idAgent->removeElement($idAgent);
+        $this->agents->removeElement($agent);
         return $this;
     }
 }

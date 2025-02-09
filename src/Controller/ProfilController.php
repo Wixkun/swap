@@ -1,27 +1,27 @@
 <?php
-// src/Controller/ProfilController.php
 
 namespace App\Controller;
 
 use App\Entity\Agent;
 use App\Entity\Customer;
+use App\Entity\User;
 use App\Form\ProfileType;
+use App\Form\AgentSkillType;
+use App\Form\BecomeCustomerType;
+use App\Form\BecomeAgentType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Form\BecomeCustomerType;
 
 class ProfilController extends AbstractController
 {
     #[Route('/profil', name: 'app_profil')]
-    public function index(
-        Request $request,
-        EntityManagerInterface $em,
-        UserPasswordHasherInterface $passwordHasher
-    ): Response {
+    public function index(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
+    {
+        /** @var User $user */
         $user = $this->getUser();
         if (!$user) {
             throw $this->createAccessDeniedException();
@@ -33,7 +33,6 @@ class ProfilController extends AbstractController
             $user->setIdAgent($agent);
             $em->persist($agent);
         }
-
         if (in_array('ROLE_CUSTOMER', $user->getRoles(), true) && !$user->getIdCustomer()) {
             $customer = new Customer();
             $customer->setIdUser($user);
@@ -41,49 +40,55 @@ class ProfilController extends AbstractController
             $em->persist($customer);
         }
 
-        $form = $this->createForm(ProfileType::class, $user);
-
+        $profileForm = $this->createForm(ProfileType::class, $user);
         if ($user->getIdAgent()) {
-            $form->get('pseudoAgent')->setData($user->getIdAgent()->getPseudo());
-            $form->get('phoneAgent')->setData($user->getIdAgent()->getPhoneNumber());
+            $profileForm->get('pseudoAgent')->setData($user->getIdAgent()->getPseudo());
+            $profileForm->get('phoneAgent')->setData($user->getIdAgent()->getPhoneNumber());
         }
-
         if ($user->getIdCustomer()) {
-            $form->get('firstNameCustomer')->setData($user->getIdCustomer()->getFirstName());
-            $form->get('lastNameCustomer')->setData($user->getIdCustomer()->getLastName());
-            $form->get('cityCustomer')->setData($user->getIdCustomer()->getCity());
+            $profileForm->get('firstNameCustomer')->setData($user->getIdCustomer()->getFirstName());
+            $profileForm->get('lastNameCustomer')->setData($user->getIdCustomer()->getLastName());
+            $profileForm->get('cityCustomer')->setData($user->getIdCustomer()->getCity());
         }
-
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $plainPassword = $form->get('plainPassword')->getData();
+        $profileForm->handleRequest($request);
+        if ($profileForm->isSubmitted() && $profileForm->isValid()) {
+            $plainPassword = $profileForm->get('plainPassword')->getData();
             if (!empty($plainPassword)) {
                 $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
                 $user->setPassword($hashedPassword);
             }
-
             if ($user->getIdAgent()) {
-                $user->getIdAgent()->setPseudo($form->get('pseudoAgent')->getData());
-                $user->getIdAgent()->setPhoneNumber($form->get('phoneAgent')->getData());
+                $user->getIdAgent()->setPseudo($profileForm->get('pseudoAgent')->getData());
+                $user->getIdAgent()->setPhoneNumber($profileForm->get('phoneAgent')->getData());
             }
-
             if ($user->getIdCustomer()) {
-                $user->getIdCustomer()->setFirstName($form->get('firstNameCustomer')->getData());
-                $user->getIdCustomer()->setLastName($form->get('lastNameCustomer')->getData());
-                $user->getIdCustomer()->setCity($form->get('cityCustomer')->getData());
+                $user->getIdCustomer()->setFirstName($profileForm->get('firstNameCustomer')->getData());
+                $user->getIdCustomer()->setLastName($profileForm->get('lastNameCustomer')->getData());
+                $user->getIdCustomer()->setCity($profileForm->get('cityCustomer')->getData());
             }
-
             $em->flush();
             $this->addFlash('success', 'Votre profil a été mis à jour.');
-
             return $this->redirectToRoute('app_profil');
+        }
+
+        $agentSkillFormView = null;
+        if (in_array('ROLE_AGENT', $user->getRoles(), true) && $user->getIdAgent()) {
+            $agentSkillForm = $this->createForm(AgentSkillType::class, $user->getIdAgent());
+            $agentSkillForm->handleRequest($request);
+            if ($agentSkillForm->isSubmitted() && $agentSkillForm->isValid()) {
+                $em->flush();
+                $this->addFlash('success', 'Vos skills ont été mis à jour.');
+                return $this->redirectToRoute('app_profil');
+            }
+            $agentSkillFormView = $agentSkillForm->createView();
         }
 
         $tasks = $user->getTasks();
 
         return $this->render('profil/index.html.twig', [
-            'user'  => $user,
-            'form'  => $form->createView(),
+            'user' => $user,
+            'profileForm' => $profileForm->createView(),
+            'agentSkillForm' => $agentSkillFormView,
             'tasks' => $tasks,
         ]);
     }
@@ -95,15 +100,12 @@ class ProfilController extends AbstractController
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
-
         if (!$this->isCsrfTokenValid('delete_account', $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de sécurité invalide.');
             return $this->redirectToRoute('app_profil');
         }
-
         $em->remove($user);
         $em->flush();
-
         return $this->redirectToRoute('app_logout');
     }
 
@@ -114,7 +116,6 @@ class ProfilController extends AbstractController
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
-
         if (!$user->getIdCustomer()) {
             $customer = new Customer();
             $customer->setIdUser($user);
@@ -123,22 +124,18 @@ class ProfilController extends AbstractController
         } else {
             $customer = $user->getIdCustomer();
         }
-
         $form = $this->createForm(BecomeCustomerType::class, $customer);
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
             $roles = $user->getRoles();
             if (!in_array('ROLE_CUSTOMER', $roles, true)) {
                 $roles[] = 'ROLE_CUSTOMER';
                 $user->setRoles($roles);
             }
-
             $em->flush();
             $this->addFlash('success', 'Vous êtes maintenant un customer et pouvez poster des tâches !');
             return $this->redirectToRoute('app_profil');
         }
-
         return $this->render('profil/become_customer.html.twig', [
             'form' => $form->createView(),
         ]);
@@ -151,31 +148,26 @@ class ProfilController extends AbstractController
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
-
         if (!$user->getIdAgent()) {
-            $agent = new \App\Entity\Agent();
+            $agent = new Agent();
             $agent->setIdUser($user);
             $user->setIdAgent($agent);
             $em->persist($agent);
         } else {
             $agent = $user->getIdAgent();
         }
-
-        $form = $this->createForm(\App\Form\BecomeAgentType::class, $agent);
+        $form = $this->createForm(BecomeAgentType::class, $agent);
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
             $roles = $user->getRoles();
             if (!in_array('ROLE_AGENT', $roles, true)) {
                 $roles[] = 'ROLE_AGENT';
                 $user->setRoles($roles);
             }
-
             $em->flush();
             $this->addFlash('success', 'Vous êtes maintenant un agent et pouvez répondre à des offres !');
             return $this->redirectToRoute('app_profil');
         }
-
         return $this->render('profil/become_agent.html.twig', [
             'form' => $form->createView(),
         ]);

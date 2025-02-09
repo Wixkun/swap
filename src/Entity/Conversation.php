@@ -33,31 +33,42 @@ class Conversation
     {
         return $this->id;
     }
+
     public function getStartedAt(): ?\DateTimeImmutable
     {
         return $this->startedAt;
     }
+
     public function setStartedAt(\DateTimeImmutable $startedAt): static
     {
         $this->startedAt = $startedAt;
         return $this;
     }
+
     public function getIdCustomer(): ?Customer
     {
         return $this->idCustomer;
     }
+
     public function setIdCustomer(?Customer $idCustomer): static
     {
         $this->idCustomer = $idCustomer;
         return $this;
     }
+
     public function getIdAgent(): ?Agent
     {
         return $this->idAgent;
     }
+
     public function setIdAgent(?Agent $idAgent): static
     {
         $this->idAgent = $idAgent;
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return $this->id ? $this->id->__toString() : '';
     }
 }

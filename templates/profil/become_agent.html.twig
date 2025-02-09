@@ -4,17 +4,25 @@
 
 {% block body %}
     <section class="w-full max-w-lg mx-auto p-6">
-        <h1 class="text-3xl font-bold text-green-600 mb-4">Devenir un agent</h1>
+        <h1 class="text-3xl font-bold text-black-600 mb-4">Devenir un agent</h1>
 
         {{ form_start(form, { attr: { class: 'flex flex-col gap-4' } }) }}
-        {% for field in form %}
-            <div>
-                {{ form_label(field) }}
-                {{ form_widget(field, { attr: { class: 'w-full px-4 py-2 border border-gray-300 rounded-md' } }) }}
-                {{ form_errors(field) }}
-            </div>
-        {% endfor %}
-        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-300">
+        <div>
+            <label for="becomeAgentForm_pseudo" class="block text-gray-700 font-semibold">Pseudo</label>
+            {{ form_widget(form.pseudo, {'attr': {'class': 'w-full px-4 py-2 border border-gray-300 rounded-md'}}) }}
+        </div>
+
+        <div>
+            <label for="becomeAgentForm_phoneNumber" class="block text-gray-700 font-semibold">Numéro de téléphone</label>
+            {{ form_widget(form.phoneNumber, {'attr': {'class': 'w-full px-4 py-2 border border-gray-300 rounded-md'}}) }}
+        </div>
+
+        <div>
+            <label class="block text-gray-700 font-semibold">Sélectionnez vos Skills</label>
+            {{ form_widget(form.skills, {'attr': {'class': 'space-y-2'}}) }}
+        </div>
+
+        <button type="submit" class="w-full bg-black hover:bg-white text-white hover:text-black font-semibold py-2 px-4 rounded-md shadow-md transition duration-300">
             Enregistrer
         </button>
         {{ form_end(form) }}
