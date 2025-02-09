@@ -26,6 +26,9 @@ web:
 
 hooks:
   deploy: |
+    php bin/console doctrine:database:drop --force
+    php bin/console doctrine:database:create
+    php bin/console make:migration
     php bin/console doctrine:migrations:migrate --no-interaction
   post_deploy: |
     php bin/console doctrine:fixtures:load --no-interaction
