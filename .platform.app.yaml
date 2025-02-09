@@ -20,8 +20,8 @@ web:
     "/":
       root: "public"
       passthru: "/index.php"
-    "/uploads/":
-      root: "/mnt/uploads/"
+    "/uploads":
+      root: "mnt/uploads"
       allow: true
 
 hooks:
