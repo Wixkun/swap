@@ -37,3 +37,9 @@ workers:
     messenger-consumer:
         commands:
             start: "php bin/console messenger:consume async --no-interaction"
+
+mounts:
+    "public/uploads":
+        source: "storage"
+        source_path: "uploads"
+        writable: true
