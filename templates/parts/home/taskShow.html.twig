@@ -70,7 +70,7 @@
                     <div class="flex flex-wrap gap-4">
                         {% for filename in task.imagePaths %}
                             <img
-                                    src="{{ asset('uploads/tasks/' ~ filename) }}"
+                                    src="{{ asset('mnt/uploads/tasks' ~ filename) }}"
                                     alt="{{ task.title }}"
                                     class="w-1/2 h-auto rounded shadow"
                             />
