@@ -29,7 +29,7 @@ hooks:
     php bin/console doctrine:schema:update --force
     php bin/console doctrine:schema:validate
   post_deploy: |
-    php bin/console doctrine:fixtures:load --no-interaction --append
+    php bin/console doctrine:fixtures:load --no-interaction 
 
 variables:
   env:
