@@ -4,7 +4,7 @@ type: php:8.2
 disk: 1024
 
 mounts:
-    "/app/public/uploads": "shared:files"
+    "/app/public/uploads": "shared"
     "/app/var": "shared:files"
 
 build:
